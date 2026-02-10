@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { routeByRole } from "../auth/routeByRole";
 import { apiFetch } from "../lib/api";
-import { logo } from "src/assets/fluuyo-logo-web-outlines.svg";
+import logo from "../assets/fluuyo-logo-web-outlines.svg";
 
 import {
   LogOut,
