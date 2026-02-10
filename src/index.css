@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  body { @apply bg-slate-950 text-slate-100; }
+}
+
+@layer components {
+  .bg-aurora {
+    @apply min-h-screen bg-gradient-to-br from-indigo-700 via-violet-700 to-slate-950;
+  }
+
+  .card-glass {
+    @apply rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl shadow-2xl;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-400/40;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-3 font-semibold text-white;
+    @apply bg-gradient-to-r from-indigo-600 to-violet-600;
+    @apply hover:opacity-95 active:scale-[0.99] transition;
+    @apply shadow-lg shadow-indigo-900/30;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-3 font-semibold;
+    @apply border border-white/10 bg-white/5 text-slate-100;
+    @apply hover:bg-white/10 active:scale-[0.99] transition;
+  }
+
+  .link {
+    @apply text-emerald-300 hover:text-emerald-200 underline-offset-4 hover:underline transition;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200;
+  }
+}
