@@ -5,7 +5,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { routeByRole } from "../auth/routeByRole";
 import { apiFetch } from "../lib/api";
 import logoFluuyo from '../assets/fluuyo-logo-web-outlines.svg';
-console.log("logo import ->", logo);
+console.log("logo import ->", logoFluuyo);
 
 import {
   LogOut,
