@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { useEffect, useState } from "react";
-import logo from "../assets/fluuyo-logo-web-outlines.svg";
+import logo from "../assets/logo.svg";
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
