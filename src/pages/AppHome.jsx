@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { routeByRole } from "../auth/routeByRole";
 import { apiFetch } from "../lib/api";
-import logoFluuyo from '../assets/fluuyo-logo-web-outlines.svg';
+import logoFluuyo from '../../assets/fluuyo-logo-web-outlines.svg';
 console.log("logo import ->", logoFluuyo);
 
 import {
