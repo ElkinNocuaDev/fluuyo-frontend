@@ -25,7 +25,10 @@ export default function Login() {
       nav(routeByRole(u), { replace: true });
     } catch (err) {
       if (err?.code === "EMAIL_NOT_VERIFIED") {
-        setError("Debes verificar tu correo antes de iniciar sesión.");
+        nav("/email-not-verified", {
+          state: { email: email.trim() },
+          replace: true,
+        });
       } else {
         setError(err?.message || "No se pudo iniciar sesión.");
       }
