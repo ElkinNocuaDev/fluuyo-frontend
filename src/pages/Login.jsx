@@ -25,7 +25,7 @@ export default function Login() {
       nav(routeByRole(u), { replace: true });
     } catch (err) {
       if (err?.code === "EMAIL_NOT_VERIFIED") {
-        nav("/email-not-verified", {
+        nav("/resend-verification", {
           state: { email: email.trim() },
           replace: true,
         });

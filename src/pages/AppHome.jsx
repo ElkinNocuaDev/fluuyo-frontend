@@ -4,8 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { routeByRole } from "../auth/routeByRole";
 import { apiFetch } from "../lib/api";
-import logo from '/fluuyo-logo-web-outlines.svg';
-console.log("logo import ->", logo);
+import logo from '../assets/fluuyo-logo-web-outlines.svg';
 
 import {
   LogOut,
@@ -209,7 +208,7 @@ export default function AppHome() {
                   src={logo}
                   alt="Fluuyo"
                   className="h-10 w-auto"
-                  loading="eager"
+                  
                 />
               </span>
             </div>
