@@ -59,7 +59,9 @@ export function AuthProvider({ children }) {
       });
 
       // ❌ Si el correo no está verificado, lanzar error
-      if (!r.user.emailVerified) {
+      const verified = r.user.emailVerified === true || r.user.emailVerified === 't';
+
+      if (!verified) {
         const error = { code: "EMAIL_NOT_VERIFIED", message: "Correo no verificado." };
         throw error;
       }
