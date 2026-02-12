@@ -205,7 +205,7 @@ export default function AppHome() {
             <div className="h-10 w-10 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center">
               <span className="text-lg font-black tracking-tight text-white">
                 <img
-                  src={logo}
+                  src="/assets/fluuyo-logo-web-outlines.svg"
                   alt="Fluuyo"
                   className="h-10 w-auto"
                   
