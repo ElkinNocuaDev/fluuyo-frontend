@@ -58,8 +58,11 @@ export function AuthProvider({ children }) {
         body: { email, password },
       });
 
-      // ❌ Si el correo no está verificado, lanzar error
-      if (r.user.emailVerified !== true) {
+      // Decodificar el token para leer email_verified
+      const payload = jwtDecode(r.token);
+      const verified = payload.email_verified === true || payload.email_verified === 't';
+      
+      if (!verified) {
         const error = { code: "EMAIL_NOT_VERIFIED", message: "Correo no verificado." };
         throw error;
       }
