@@ -7,6 +7,7 @@ import {
   setToken,
   setUnauthorizedHandler,
 } from "../lib/api";
+import jwtDecode from "jwt-decode";
 
 const AuthCtx = createContext(null);
 
@@ -61,7 +62,7 @@ export function AuthProvider({ children }) {
       // Decodificar el token para leer email_verified
       const payload = jwtDecode(r.token);
       const verified = payload.email_verified === true || payload.email_verified === 't';
-      
+
       if (!verified) {
         const error = { code: "EMAIL_NOT_VERIFIED", message: "Correo no verificado." };
         throw error;
