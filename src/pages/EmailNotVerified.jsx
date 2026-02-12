@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
+import { apiFetch } from "../lib/api"; // <-- usar apiFetch en lugar de axios
 
 export default function EmailNotVerified() {
   const location = useLocation();
@@ -8,10 +8,24 @@ export default function EmailNotVerified() {
 
   const [email, setEmail] = useState(initialEmail);
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleResend = async () => {
-    await axios.post("/api/auth/resend-verification", { email });
-    setSent(true);
+    setError("");
+    setLoading(true);
+    try {
+      await apiFetch("/auth/resend-verification", {
+        method: "POST",
+        auth: false,
+        body: { email },
+      });
+      setSent(true);
+    } catch (err) {
+      setError(err?.message || "No se pudo reenviar el correo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,13 +49,20 @@ export default function EmailNotVerified() {
       <button
         onClick={handleResend}
         className="btn-primary w-full"
+        disabled={loading}
       >
-        Reenviar correo
+        {loading ? "Enviando..." : "Reenviar correo"}
       </button>
 
       {sent && (
         <p className="text-emerald-400 mt-4">
           Si el correo existe, se ha enviado un nuevo enlace.
+        </p>
+      )}
+
+      {error && (
+        <p className="text-red-400 mt-2">
+          {error}
         </p>
       )}
     </div>
