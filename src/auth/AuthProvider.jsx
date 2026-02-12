@@ -7,7 +7,7 @@ import {
   setToken,
   setUnauthorizedHandler,
 } from "../lib/api";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const AuthCtx = createContext(null);
 
