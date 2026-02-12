@@ -18,6 +18,7 @@ import KycUserDetailAdmin from "./pages/admin/KycUserDetailAdmin";
 import UsersAdmin from "./pages/admin/UsersAdmin";
 import UserDetailAdmin from "./pages/admin/UserDetailAdmin";
 import EmailNotVerified from "./pages/EmailNotVerified";
+import VerifyEmail from "./pages/VerifyEmail";
 
 
 export default function App() {
@@ -50,6 +51,15 @@ export default function App() {
           element={
             <PublicOnly>
               <EmailNotVerified />
+            </PublicOnly>
+          }
+        />
+
+        <Route
+          path="/verify-email"
+          element={
+            <PublicOnly>
+              <VerifyEmail />
             </PublicOnly>
           }
         />
