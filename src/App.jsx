@@ -17,6 +17,7 @@ import KycAdmin from "./pages/admin/KycAdmin";
 import KycUserDetailAdmin from "./pages/admin/KycUserDetailAdmin";
 import UsersAdmin from "./pages/admin/UsersAdmin";
 import UserDetailAdmin from "./pages/admin/UserDetailAdmin";
+import EmailNotVerified from "./pages/EmailNotVerified";
 
 
 export default function App() {
@@ -40,6 +41,15 @@ export default function App() {
           element={
             <PublicOnly>
               <Register />
+            </PublicOnly>
+          }
+        />
+
+        <Route
+          path="/resend-verification"
+          element={
+            <PublicOnly>
+              <EmailNotVerified />
             </PublicOnly>
           }
         />
