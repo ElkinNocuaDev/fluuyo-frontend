@@ -4,7 +4,8 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { routeByRole } from "../auth/routeByRole";
 import { apiFetch } from "../lib/api";
-import logo from '../assets/fluuyo-logo-web-outlines.svg';
+// import logo from '../assets/fluuyo-logo-web-outlines.svg';
+import Logo from "../components/Logo";
 
 import {
   LogOut,
@@ -204,12 +205,7 @@ export default function AppHome() {
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center">
               <span className="text-lg font-black tracking-tight text-white">
-                <img
-                  src={logo}
-                  alt="Fluuyo"
-                  className="h-10 w-auto"
-                  
-                />
+                <Logo className="h-10 w-auto" />
               </span>
             </div>
 
