@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useState } from "react";
-import { apiFetch } from "../lib/api"; // <-- usar apiFetch en lugar de axios
+import { apiFetch } from "../lib/api";
+import AuthLayout from "../components/AuthLayout";
 
 export default function EmailNotVerified() {
   const location = useLocation();
@@ -11,7 +12,8 @@ export default function EmailNotVerified() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleResend = async () => {
+  const handleResend = async (e) => {
+    e.preventDefault();
     setError("");
     setLoading(true);
     try {
@@ -29,42 +31,49 @@ export default function EmailNotVerified() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 text-center">
-      <h2 className="text-xl font-bold mb-4">
-        Tu correo no ha sido verificado
-      </h2>
+    <AuthLayout
+      title="Correo no verificado"
+      subtitle="Te enviamos un enlace de verificación. Si no lo recibiste, solicita uno nuevo."
+      footer={
+        <>
+          ¿No tienes cuenta?{" "}
+          <a href="/register" className="link">
+            Crear cuenta
+          </a>
+        </>
+      }
+    >
+      <form className="space-y-4" onSubmit={handleResend}>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-slate-200">
+            Email
+          </label>
+          <input
+            type="email"
+            className="input"
+            placeholder="tu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+        </div>
 
-      <p className="mb-6">
-        Te enviamos un enlace de verificación. Si no lo recibiste,
-        puedes solicitar uno nuevo.
-      </p>
+        {error && (
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
 
-      <input
-        type="email"
-        className="input mb-4 w-full"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        {sent && (
+          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+            Si el correo existe, se ha enviado un nuevo enlace.
+          </div>
+        )}
 
-      <button
-        onClick={handleResend}
-        className="btn-primary w-full"
-        disabled={loading}
-      >
-        {loading ? "Enviando..." : "Reenviar correo"}
-      </button>
-
-      {sent && (
-        <p className="text-emerald-400 mt-4">
-          Si el correo existe, se ha enviado un nuevo enlace.
-        </p>
-      )}
-
-      {error && (
-        <p className="text-red-400 mt-2">
-          {error}
-        </p>
-      )}
-    </div>
+        <button type="submit" className="btn-primary w-full" disabled={loading}>
+          {loading ? "Enviando..." : "Reenviar correo"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
