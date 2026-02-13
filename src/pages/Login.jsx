@@ -90,9 +90,9 @@ export default function Login() {
             Recordarme
           </label>
 
-          <button type="button" className="link text-sm">
+          <Link to="/forgot-password" className="link text-sm">
             ¿Olvidaste tu contraseña?
-          </button>
+          </Link>
         </div>
 
         {error ? (

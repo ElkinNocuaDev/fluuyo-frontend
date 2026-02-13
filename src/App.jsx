@@ -19,6 +19,8 @@ import UsersAdmin from "./pages/admin/UsersAdmin";
 import UserDetailAdmin from "./pages/admin/UserDetailAdmin";
 import EmailNotVerified from "./pages/EmailNotVerified";
 import VerifyEmail from "./pages/VerifyEmail";
+import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 
 
 export default function App() {
@@ -60,6 +62,24 @@ export default function App() {
           element={
             <PublicOnly>
               <VerifyEmail />
+            </PublicOnly>
+          }
+        />
+
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicOnly>
+              <ForgotPassword />
+            </PublicOnly>
+          }
+        />
+        
+        <Route
+          path="/reset-password"
+          element={
+            <PublicOnly>
+              <ResetPassword />
             </PublicOnly>
           }
         />
