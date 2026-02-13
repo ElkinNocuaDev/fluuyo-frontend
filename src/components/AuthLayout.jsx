@@ -1,3 +1,5 @@
+import logo from "../assets/fluuyo-logo-web-outlines.svg";
+
 export default function AuthLayout({ title, subtitle, children, footer }) {
   return (
     <div className="bg-aurora flex items-center justify-center px-4 py-10">
@@ -8,7 +10,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
             <div className="h-10 w-10 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center">
               <span className="text-lg font-black tracking-tight">
                 <img
-                  src="src/assets/fluuyo-logo-web-outlines.svg"
+                  src={logo}
                   alt="Fluuyo"
                   className="h-10 w-auto"
                   loading="eager"
