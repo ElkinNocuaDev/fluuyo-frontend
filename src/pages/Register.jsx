@@ -18,36 +18,67 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const CO_PHONE_REGEX = /^(?:\+?57)?3\d{9}$/;
+
+  const PASSWORD_REGEX =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
+
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
-    
+
+    const cleanPhone = phone.replace(/[^\d+]/g, "");
+
+    if (!first_name.trim() || !last_name.trim()) {
+      setError("Nombre y apellido son obligatorios.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("El correo electrónico es obligatorio.");
+      return;
+    }
+
+    if (!CO_PHONE_REGEX.test(cleanPhone)) {
+      setError("Ingresa un número celular colombiano válido.");
+      return;
+    }
+
+    if (!PASSWORD_REGEX.test(password)) {
+      setError(
+        "La contraseña debe tener mínimo 8 caracteres, incluir mayúscula, minúscula, número y carácter especial."
+      );
+      return;
+    }
+
     if (!terms) {
       setError("Debes aceptar los Términos y la Política de privacidad.");
       return;
     }
-  
+
     setLoading(true);
+
     try {
       await register({
         first_name: first_name.trim(),
         last_name: last_name.trim(),
         email: email.trim(),
-        phone: phone.trim(),
+        phone: cleanPhone,
         password,
       });
-    
+
       nav("/check-email", {
         replace: true,
         state: { email },
       });
-    
+
     } catch (err) {
       setError(err?.message || "No se pudo crear la cuenta.");
     } finally {
       setLoading(false);
     }
   }
+
 
 
   return (
@@ -75,6 +106,7 @@ export default function Register() {
               value={first_name}
               onChange={(e) => setFirstName(e.target.value)}
               autoComplete="given-name"
+              required
             />
           </div>
           <div>
@@ -87,6 +119,7 @@ export default function Register() {
               value={last_name}
               onChange={(e) => setLastName(e.target.value)}
               autoComplete="family-name"
+              required
             />
           </div>
         </div>
@@ -102,6 +135,7 @@ export default function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            required
           />
         </div>
 
@@ -115,6 +149,8 @@ export default function Register() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             autoComplete="tel"
+            inputMode="numeric"
+            required
           />
         </div>
 
@@ -129,6 +165,7 @@ export default function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
+            required
           />
         </div>
 
