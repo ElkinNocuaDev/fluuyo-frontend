@@ -545,7 +545,7 @@ export default function AppHome() {
                 <br />
                 Teléfono: <b>{user?.phone || "—"}</b>
                 <br />
-                KYC: <b>{kyc.status}</b>
+                KYC: <b>{kyc.t}</b>
               </div>
 
               <button
