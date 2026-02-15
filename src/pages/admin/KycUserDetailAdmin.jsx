@@ -32,7 +32,7 @@ export default function KycUserDetailAdmin() {
     try {
       await apiFetch(`/admin/kyc/documents/${id}/review`, {
         method: "PATCH",
-        body: JSON.stringify({ status }),
+        body: { status },
       });
       loadDocs();
     } catch (err) {
