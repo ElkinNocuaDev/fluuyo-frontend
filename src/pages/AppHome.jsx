@@ -545,7 +545,7 @@ export default function AppHome() {
                 <br />
                 Teléfono: <b>{user?.phone || "—"}</b>
                 <br />
-                KYC: <b>{String(user?.kyc_status ? "PENDIENTE" : "—")}</b>
+                KYC: <b>{kyc.status}</b>
               </div>
 
               <button
