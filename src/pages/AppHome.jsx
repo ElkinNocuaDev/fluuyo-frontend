@@ -78,6 +78,19 @@ export default function AppHome() {
   // Bottom nav (mobile)
   const [tab, setTab] = useState("home"); // "home" | "loan" | "payments" | "profile"
 
+  const [disbursementAccount, setDisbursementAccount] = useState(null);
+
+  const [openBankModal, setOpenBankModal] = useState(false);
+  const [bankForm, setBankForm] = useState({
+    bank_name: "",
+    account_type: "SAVINGS",
+    account_number: "",
+    account_holder_name: "",
+    account_holder_document: "",
+  });
+  const [bankLoading, setBankLoading] = useState(false);
+  const [bankError, setBankError] = useState("");
+
   if (booting) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== "CUSTOMER") return <Navigate to={routeByRole(user)} replace />;
@@ -127,6 +140,16 @@ export default function AppHome() {
       setCredit(cp?.credit_profile || null);
       setActiveLoan(la?.loan || null);
       setInstallments(Array.isArray(la?.installments) ? la.installments : []);
+
+      if (la?.loan) {
+        try {
+          const da = await apiFetch("/me/disbursement-account", { auth: true });
+          setDisbursementAccount(da?.account || null);
+        } catch {
+          setDisbursementAccount(null);
+        }
+      }
+      
     } catch (e) {
       setError(e?.message || "No se pudo cargar tu información.");
     } finally {
@@ -186,6 +209,31 @@ export default function AppHome() {
       setApplyError(e?.message || "No se pudo solicitar el préstamo.");
     } finally {
       setApplyLoading(false);
+    }
+  }
+
+  async function saveBankAccount() {
+    setBankError("");
+
+    if (!bankForm.bank_name || !bankForm.account_number) {
+      setBankError("Completa todos los campos.");
+      return;
+    }
+
+    setBankLoading(true);
+    try {
+      await apiFetch("/me/disbursement-account", {
+        method: "POST",
+        auth: true,
+        body: bankForm,
+      });
+
+      setOpenBankModal(false);
+      await loadAll({ soft: true });
+    } catch (e) {
+      setBankError(e?.message || "No se pudo guardar la cuenta.");
+    } finally {
+      setBankLoading(false);
     }
   }
 
@@ -333,7 +381,7 @@ export default function AppHome() {
 
               <div className="card-glass p-5">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-white/70">Mi Score</div>
+                  <div className="text-sm text-white/70">Mi Puntaje</div>
                   <BadgeCheck className="h-5 w-5 text-white/80" />
                 </div>
 
@@ -491,6 +539,54 @@ export default function AppHome() {
                       ))}
                     </div>
                   </div>
+
+                  {String(activeLoan?.status || "").toUpperCase() === "APPROVED" && (
+                    <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="text-sm font-semibold text-white">
+                        Cuenta para desembolso
+                      </div>
+
+                      {!disbursementAccount ? (
+                        <>
+                          <div className="mt-2 text-sm text-white/70">
+                            Para recibir tu dinero debes registrar una cuenta bancaria.
+                          </div>
+                      
+                          <button
+                            type="button"
+                            className="mt-3 btn-primary"
+                            onClick={() => setOpenBankModal(true)}
+                          >
+                            Agregar cuenta bancaria
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="mt-2 text-sm text-white/80">
+                            Banco: <b>{disbursementAccount.bank_name}</b>
+                          </div>
+                      
+                          <div className="text-sm text-white/80">
+                            Cuenta: ****
+                            {String(disbursementAccount.account_number || "").slice(-4)}
+                          </div>
+                      
+                          <div
+                            className={[
+                              "mt-2 badge",
+                              disbursementAccount.is_verified
+                                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
+                                : "border-amber-400/30 bg-amber-400/10 text-amber-100",
+                            ].join(" ")}
+                          >
+                            {disbursementAccount.is_verified
+                              ? "Cuenta verificada"
+                              : "En revisión por el equipo"}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
 
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                     <button
@@ -825,6 +921,107 @@ export default function AppHome() {
           </div>
         </div>
       ) : null}
+
+      {/* Modal Agregar cuenta bancaria */}
+      {openBankModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => (bankLoading ? null : setOpenBankModal(false))}
+          />
+      
+          <div className="relative w-full sm:max-w-lg mx-auto p-4 sm:p-0">
+            <div className="card-glass p-6">
+              <div className="text-white font-bold text-lg">
+                Registrar cuenta bancaria
+              </div>
+            
+              <div className="mt-4 grid gap-3">
+            
+                <input
+                  className="input"
+                  placeholder="Banco"
+                  value={bankForm.bank_name}
+                  onChange={(e) =>
+                    setBankForm({ ...bankForm, bank_name: e.target.value })
+                  }
+                  disabled={bankLoading}
+                />
+      
+                <select
+                  className="input"
+                  value={bankForm.account_type}
+                  onChange={(e) =>
+                    setBankForm({ ...bankForm, account_type: e.target.value })
+                  }
+                  disabled={bankLoading}
+                >
+                  <option value="SAVINGS">Cuenta de ahorros</option>
+                  <option value="CHECKING">Cuenta corriente</option>
+                </select>
+                
+                <input
+                  className="input"
+                  placeholder="Número de cuenta"
+                  value={bankForm.account_number}
+                  onChange={(e) =>
+                    setBankForm({ ...bankForm, account_number: e.target.value })
+                  }
+                  disabled={bankLoading}
+                />
+      
+                <input
+                  className="input"
+                  placeholder="Nombre titular"
+                  value={bankForm.account_holder_name}
+                  onChange={(e) =>
+                    setBankForm({ ...bankForm, account_holder_name: e.target.value })
+                  }
+                  disabled={bankLoading}
+                />
+      
+                <input
+                  className="input"
+                  placeholder="Documento titular"
+                  value={bankForm.account_holder_document}
+                  onChange={(e) =>
+                    setBankForm({
+                      ...bankForm,
+                      account_holder_document: e.target.value,
+                    })
+                  }
+                  disabled={bankLoading}
+                />
+      
+                {bankError && (
+                  <div className="text-sm text-red-300">{bankError}</div>
+                )}
+      
+                <div className="flex gap-2 justify-end">
+                  <button
+                    className="btn-ghost"
+                    onClick={() => setOpenBankModal(false)}
+                    disabled={bankLoading}
+                  >
+                    Cancelar
+                  </button>
+              
+                  <button
+                    className="btn-primary"
+                    onClick={saveBankAccount}
+                    disabled={bankLoading}
+                  >
+                    {bankLoading ? "Guardando..." : "Guardar cuenta"}
+                  </button>
+                </div>
+              </div>
+            </div>
+              
+            <div className="h-6 sm:hidden" />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
