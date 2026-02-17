@@ -27,6 +27,16 @@ function fmtCOP(n) {
   }).format(Number(n || 0));
 }
 
+function fmtDate(d) {
+  if (!d) return "—";
+  const date = new Date(d);
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
 function kycLabel(s) {
   const v = String(s || "").toUpperCase();
   if (v === "APPROVED") return { t: "KYC aprobado", tone: "ok" };
@@ -507,7 +517,7 @@ export default function AppHome() {
                         <div className="text-sm font-semibold text-white">Próxima cuota</div>
                         <div className="mt-1 text-sm text-white/70">
                           {nextInstallment
-                            ? `#${nextInstallment.installment_number} • vence ${nextInstallment.due_date}`
+                            ? `#${nextInstallment.installment_number} • vence ${fmtDate(nextInstallment.due_date)}`
                             : "No hay cuotas pendientes."}
                         </div>
                       </div>
@@ -527,7 +537,7 @@ export default function AppHome() {
                           className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 flex items-center justify-between gap-3"
                         >
                           <div className="text-sm text-white/80">
-                            #{x.installment_number} • {x.due_date}
+                            #{x.installment_number} • {fmtDate(x.due_date)}
                             <div className="text-xs text-white/60">
                               Estado: {String(x.status || "—")}
                             </div>
@@ -548,8 +558,8 @@ export default function AppHome() {
 
                       {!disbursementAccount ? (
                         <>
-                          <div className="mt-2 text-sm text-white/70">
-                            Para recibir tu dinero debes registrar una cuenta bancaria.
+                          <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+                            Tu préstamo está aprobado. Registra y verifica una cuenta bancaria para recibir el desembolso.
                           </div>
                       
                           <button
@@ -929,15 +939,15 @@ export default function AppHome() {
             className="absolute inset-0 bg-black/60"
             onClick={() => (bankLoading ? null : setOpenBankModal(false))}
           />
-      
+
           <div className="relative w-full sm:max-w-lg mx-auto p-4 sm:p-0">
             <div className="card-glass p-6">
               <div className="text-white font-bold text-lg">
                 Registrar cuenta bancaria
               </div>
-            
+
               <div className="mt-4 grid gap-3">
-            
+
                 <input
                   className="input"
                   placeholder="Banco"
@@ -947,7 +957,7 @@ export default function AppHome() {
                   }
                   disabled={bankLoading}
                 />
-      
+
                 <select
                   className="input"
                   value={bankForm.account_type}
@@ -969,7 +979,7 @@ export default function AppHome() {
                   }
                   disabled={bankLoading}
                 />
-      
+
                 <input
                   className="input"
                   placeholder="Nombre titular"
@@ -979,7 +989,7 @@ export default function AppHome() {
                   }
                   disabled={bankLoading}
                 />
-      
+
                 <input
                   className="input"
                   placeholder="Documento titular"
@@ -992,11 +1002,11 @@ export default function AppHome() {
                   }
                   disabled={bankLoading}
                 />
-      
+
                 {bankError && (
                   <div className="text-sm text-red-300">{bankError}</div>
                 )}
-      
+
                 <div className="flex gap-2 justify-end">
                   <button
                     className="btn-ghost"
