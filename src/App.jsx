@@ -21,6 +21,7 @@ import EmailNotVerified from "./pages/EmailNotVerified";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
+import LoanDetail from "./pages/LoanDetail";
 
 
 export default function App() {
@@ -74,7 +75,7 @@ export default function App() {
             </PublicOnly>
           }
         />
-        
+
         <Route
           path="/reset-password"
           element={
@@ -93,11 +94,21 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/app/kyc"
           element={
             <ProtectedRoute>
               <Kyc />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/app/loan/:id"
+          element={
+            <ProtectedRoute>
+              <LoanDetail />
             </ProtectedRoute>
           }
         />
