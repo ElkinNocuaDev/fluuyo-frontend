@@ -168,7 +168,6 @@ export default function AppHome() {
         }
       }
 
-      
     } catch (e) {
       setError(e?.message || "No se pudo cargar tu información.");
     } finally {
