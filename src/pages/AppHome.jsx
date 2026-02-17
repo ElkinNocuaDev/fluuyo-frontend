@@ -572,11 +572,12 @@ export default function AppHome() {
                       <div className="text-sm font-semibold text-white">
                         Cuenta para desembolso
                       </div>
-
-                      {!disbursementAccount ? (
+                                    
+                      {!disbursementAccount && (
                         <>
                           <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
-                            Tu préstamo está aprobado. Registra y verifica una cuenta bancaria para recibir el desembolso.
+                            Tu préstamo está aprobado.
+                            Registra una cuenta bancaria para recibir el desembolso.
                           </div>
                       
                           <button
@@ -587,33 +588,49 @@ export default function AppHome() {
                             Agregar cuenta bancaria
                           </button>
                         </>
-                      ) : (
+                      )}
+                  
+                      {disbursementAccount && (
                         <>
-                          <div className="mt-2 text-sm text-white/80">
-                            Banco: <b>{disbursementAccount.bank_name}</b>
+                          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div className="text-sm text-white/80">
+                              Banco: <b>{disbursementAccount.bank_name}</b>
+                            </div>
+                      
+                            <div className="text-sm text-white/80">
+                              Cuenta: ****
+                              {String(disbursementAccount.account_number || "").slice(-4)}
+                            </div>
                           </div>
                       
-                          <div className="text-sm text-white/80">
-                            Cuenta: ****
-                            {String(disbursementAccount.account_number || "").slice(-4)}
-                          </div>
-                      
-                          <div
-                            className={[
-                              "mt-2 badge",
-                              disbursementAccount.is_verified
-                                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
-                                : "border-amber-400/30 bg-amber-400/10 text-amber-100",
-                            ].join(" ")}
-                          >
-                            {disbursementAccount.is_verified
-                              ? "Cuenta verificada"
-                              : "En revisión por el equipo"}
-                          </div>
+                          {!disbursementAccount.is_verified && (
+                            <div className="mt-3 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+                              Cuenta registrada correctamente.
+                              Estamos validando la información antes del desembolso.
+                            </div>
+                          )}
+                  
+                          {disbursementAccount.is_verified && (
+                            <div className="mt-3 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+                              Cuenta verificada.
+                              El desembolso se realizará pronto.
+                            </div>
+                          )}
+                  
+                          {!disbursementAccount.is_verified && (
+                            <button
+                              type="button"
+                              className="mt-3 btn-ghost"
+                              onClick={() => setOpenBankModal(true)}
+                            >
+                              Editar cuenta
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
                   )}
+
 
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                     <button
