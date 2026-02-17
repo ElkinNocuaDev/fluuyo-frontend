@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Navigate } from "react-router-dom";
+import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -19,6 +19,7 @@ function formatDate(date) {
 
 export default function LoanDetail() {
   const { id } = useParams();
+  const nav = useNavigate();
   const { user, booting } = useAuth();
 
   const [loan, setLoan] = useState(null);
@@ -55,127 +56,157 @@ export default function LoanDetail() {
     load();
   }, [id]);
 
-  if (loading) return <div className="p-6 text-white">Cargando...</div>;
-  if (error) return <div className="p-6 text-red-400">{error}</div>;
-  if (!loan) return <div className="p-6 text-white">Préstamo no encontrado.</div>;
+  if (loading)
+    return (
+      <div className="bg-aurora min-h-screen flex items-center justify-center text-white">
+        Cargando...
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="bg-aurora min-h-screen flex items-center justify-center text-red-300">
+        {error}
+      </div>
+    );
+
+  if (!loan)
+    return (
+      <div className="bg-aurora min-h-screen flex items-center justify-center text-white">
+        Préstamo no encontrado.
+      </div>
+    );
 
   return (
-    <div className="p-6 text-white max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold">Detalle del préstamo</h1>
+    <div className="bg-aurora min-h-screen px-4 py-8 text-white">
+      <div className="max-w-3xl mx-auto space-y-6">
 
-      {/* Información principal */}
-      <div className="mt-6 bg-white/5 p-5 rounded-xl space-y-2">
-        <div>
-          <span className="text-gray-400">Monto aprobado:</span>{" "}
-          {formatCOP(loan.principal_cop)}
-        </div>
-        <div>
-          <span className="text-gray-400">Plazo:</span>{" "}
-          {loan.term_months} meses
-        </div>
-        <div>
-          <span className="text-gray-400">Estado:</span>{" "}
-          {loan.status}
-        </div>
-      </div>
+        {/* Header con botón volver */}
+        <div className="flex items-center justify-between">
+          <button
+            className="btn-ghost"
+            onClick={() => nav("/app")}
+          >
+            ← Volver
+          </button>
 
-      {/* Resumen financiero */}
-      {financial && (
-        <div className="mt-6 bg-white/5 p-5 rounded-xl space-y-2">
-          <h2 className="font-semibold text-lg">Resumen financiero</h2>
-          <div>
-            <span className="text-gray-400">Total a pagar:</span>{" "}
-            {formatCOP(financial.total_payable_cop)}
-          </div>
-          <div>
-            <span className="text-gray-400">Total pagado:</span>{" "}
-            {formatCOP(financial.total_paid_cop)}
-          </div>
-          <div>
-            <span className="text-gray-400">Saldo restante:</span>{" "}
-            {formatCOP(financial.remaining_balance_cop)}
+          <div className="text-sm px-3 py-1 rounded-full bg-white/10">
+            {loan.status}
           </div>
         </div>
-      )}
 
-      {/* Cuenta de desembolso */}
-      <div className="mt-6 bg-white/5 p-5 rounded-xl space-y-2">
-        <h2 className="font-semibold text-lg">Cuenta de desembolso</h2>
+        <h1 className="text-2xl font-bold">
+          Detalle del préstamo
+        </h1>
 
-        {!disbursementAccount &&
-          permissions?.can_edit_disbursement_account && (
-            <div className="text-amber-400">
+        {/* Información principal */}
+        <div className="card-glass p-6 space-y-3">
+          <div>
+            <span className="text-white/60">Monto aprobado</span>
+            <div className="text-xl font-semibold">
+              {formatCOP(loan.principal_cop)}
+            </div>
+          </div>
+
+          <div>
+            <span className="text-white/60">Plazo</span>
+            <div>{loan.term_months} meses</div>
+          </div>
+        </div>
+
+        {/* Resumen financiero */}
+        {financial && (
+          <div className="card-glass p-6 space-y-2">
+            <div className="font-semibold">Resumen financiero</div>
+
+            <div className="flex justify-between">
+              <span className="text-white/60">Total a pagar</span>
+              <span>{formatCOP(financial.total_payable_cop)}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-white/60">Total pagado</span>
+              <span>{formatCOP(financial.total_paid_cop)}</span>
+            </div>
+
+            <div className="flex justify-between font-semibold">
+              <span>Saldo restante</span>
+              <span>{formatCOP(financial.remaining_balance_cop)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Cuenta de desembolso */}
+        <div className="card-glass p-6 space-y-2">
+          <div className="font-semibold">Cuenta de desembolso</div>
+
+          {!disbursementAccount && (
+            <div className="text-amber-300 text-sm">
               No has registrado una cuenta bancaria.
             </div>
           )}
 
-        {!disbursementAccount &&
-          !permissions?.can_edit_disbursement_account && (
-            <div className="text-gray-400">
-              No hay información de cuenta disponible.
+          {disbursementAccount && (
+            <>
+              <div className="flex justify-between">
+                <span className="text-white/60">Banco</span>
+                <span>{disbursementAccount.bank_name}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-white/60">Tipo</span>
+                <span>{disbursementAccount.account_type}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-white/60">Estado</span>
+                <span className="text-sm px-2 py-1 rounded-full bg-white/10">
+                  {disbursementAccount.is_verified
+                    ? "Verificada"
+                    : "Pendiente de validación"}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Cuotas */}
+        <div className="card-glass p-6 space-y-4">
+          <div className="font-semibold">Cuotas</div>
+
+          {installments.length === 0 && (
+            <div className="text-white/60 text-sm">
+              Las cuotas estarán disponibles cuando el préstamo sea desembolsado.
             </div>
           )}
 
-        {disbursementAccount && (
-          <>
-            <div>
-              <span className="text-gray-400">Banco:</span>{" "}
-              {disbursementAccount.bank_name}
-            </div>
-            <div>
-              <span className="text-gray-400">Tipo:</span>{" "}
-              {disbursementAccount.account_type}
-            </div>
-            <div>
-              <span className="text-gray-400">Estado:</span>{" "}
-              {disbursementAccount.is_verified
-                ? "Verificada"
-                : "Pendiente de validación"}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Cuotas */}
-      <div className="mt-6 bg-white/5 p-5 rounded-xl">
-        <h2 className="font-semibold text-lg mb-3">Cuotas</h2>
-
-        {installments.length === 0 && (
-          <div className="text-gray-400">
-            Las cuotas estarán disponibles cuando el préstamo sea desembolsado.
-          </div>
-        )}
-
-        <div className="space-y-3">
           {installments.map((i) => (
             <div
               key={i.id}
-              className="p-3 bg-white/5 rounded-lg space-y-1"
+              className="p-4 rounded-lg bg-white/5 space-y-1"
             >
-              <div>
-                <strong>Cuota #{i.installment_number}</strong>
+              <div className="font-semibold">
+                Cuota #{i.installment_number}
               </div>
               <div>Vence: {formatDate(i.due_date)}</div>
               <div>Monto: {formatCOP(i.amount_due_cop)}</div>
               <div>Pagado: {formatCOP(i.amount_paid_cop)}</div>
-              <div>Estado: {i.status}</div>
+              <div className="text-sm text-white/60">
+                Estado: {i.status}
+              </div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Pagos enviados */}
-      {payments.length > 0 && (
-        <div className="mt-6 bg-white/5 p-5 rounded-xl">
-          <h2 className="font-semibold text-lg mb-3">
-            Pagos enviados
-          </h2>
+        {/* Pagos */}
+        {payments.length > 0 && (
+          <div className="card-glass p-6 space-y-4">
+            <div className="font-semibold">Pagos enviados</div>
 
-          <div className="space-y-3">
             {payments.map((p) => (
               <div
                 key={p.id}
-                className="p-3 bg-white/5 rounded-lg space-y-1"
+                className="p-4 rounded-lg bg-white/5 space-y-1"
               >
                 <div>Monto: {formatCOP(p.amount_cop)}</div>
                 <div>Estado: {p.status}</div>
@@ -183,8 +214,9 @@ export default function LoanDetail() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
     </div>
   );
 }
