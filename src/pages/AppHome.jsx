@@ -956,19 +956,19 @@ export default function AppHome() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => (bankLoading ? null : setOpenBankModal(false))}
           />
-      
+
           <div className="relative w-full max-w-md">
             <div className="card-glass p-6 text-center">
-            
+
               <div className="text-white font-bold text-xl">
                 Registrar cuenta bancaria
               </div>
-            
+
               <div className="mt-5 grid gap-4">
-            
+
                 {/* ENTIDAD */}
                 <select
-                  className="input text-center"
+                  className="input text-center text-gray-900 bg-white"
                   value={bankForm.bank_name}
                   onChange={(e) =>
                     setBankForm({ ...bankForm, bank_name: e.target.value })
@@ -986,7 +986,7 @@ export default function AppHome() {
                 {/* TIPO DE CUENTA (solo si no es billetera) */}
                 {!isWallet && (
                   <select
-                    className="input text-center"
+                    className="input text-center text-gray-900 bg-white"
                     value={bankForm.account_type}
                     onChange={(e) =>
                       setBankForm({ ...bankForm, account_type: e.target.value })
@@ -997,7 +997,7 @@ export default function AppHome() {
                     <option value="CHECKING">Cuenta corriente</option>
                   </select>
                 )}
-      
+
                 {/* NUMERO */}
                 <input
                   className="input text-center"
@@ -1016,7 +1016,7 @@ export default function AppHome() {
                   disabled={bankLoading}
                   maxLength={isWallet ? 10 : 20}
                 />
-      
+
                 {/* TITULAR */}
                 <input
                   className="input text-center"
@@ -1030,7 +1030,7 @@ export default function AppHome() {
                   }
                   disabled={bankLoading}
                 />
-      
+
                 {/* DOCUMENTO */}
                 <input
                   className="input text-center"
@@ -1044,14 +1044,14 @@ export default function AppHome() {
                   }
                   disabled={bankLoading}
                 />
-      
+
                 {/* ERROR */}
                 {bankError && (
                   <div className="text-sm text-red-300">
                     {bankError}
                   </div>
                 )}
-      
+
                 {/* BOTONES */}
                 <div className="flex gap-3 justify-center pt-2">
                   <button
