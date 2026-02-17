@@ -113,10 +113,18 @@ export default function AppHome() {
     [activeLoan?.status]
   );
 
+  const isDisbursed =
+  String(activeLoan?.status || "").toUpperCase() === "DISBURSED";
+
   const nextInstallment = useMemo(() => {
+    if (!isDisbursed) return null;
+
     const list = installments || [];
-    return list.find((x) => String(x.status || "").toUpperCase() !== "PAID") || null;
-  }, [installments]);
+    return list.find(
+      (x) => String(x.status || "").toUpperCase() !== "PAID"
+    ) || null;
+  }, [installments, isDisbursed]);
+
 
   const hasActiveLoan = !!activeLoan;
 
@@ -511,6 +519,7 @@ export default function AppHome() {
                     </div>
                   </div>
 
+                  {isDisbursed && (
                   <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
@@ -527,7 +536,9 @@ export default function AppHome() {
                       </div>
                     </div>
                   </div>
+                  )}
 
+                  {isDisbursed && (
                   <div className="mt-4">
                     <div className="text-sm font-semibold text-white">Cuotas</div>
                     <div className="mt-2 grid gap-2">
@@ -549,6 +560,7 @@ export default function AppHome() {
                       ))}
                     </div>
                   </div>
+                  )}
 
                   {String(activeLoan?.status || "").toUpperCase() === "APPROVED" && (
                     <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
