@@ -262,6 +262,11 @@ export default function AppHome() {
 
   const contentPadBottom = "pb-32 sm:pb-16"; // deja espacio para bottom nav
 
+  const isWallet =
+    bankForm.bank_name === "NEQUI" ||
+    bankForm.bank_name === "DAVIPLATA";
+
+
   return (
     <div className="bg-aurora min-h-screen">
       <div className={`mx-auto max-w-6xl px-4 py-6 ${contentPadBottom}`}>
@@ -946,80 +951,109 @@ export default function AppHome() {
 
       {/* Modal Agregar cuenta bancaria */}
       {openBankModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => (bankLoading ? null : setOpenBankModal(false))}
           />
-
-          <div className="relative w-full sm:max-w-lg mx-auto p-4 sm:p-0">
-            <div className="card-glass p-6">
-              <div className="text-white font-bold text-lg">
+      
+          <div className="relative w-full max-w-md">
+            <div className="card-glass p-6 text-center">
+            
+              <div className="text-white font-bold text-xl">
                 Registrar cuenta bancaria
               </div>
-
-              <div className="mt-4 grid gap-3">
-
-                <input
-                  className="input"
-                  placeholder="Banco"
+            
+              <div className="mt-5 grid gap-4">
+            
+                {/* ENTIDAD */}
+                <select
+                  className="input text-center"
                   value={bankForm.bank_name}
                   onChange={(e) =>
                     setBankForm({ ...bankForm, bank_name: e.target.value })
                   }
                   disabled={bankLoading}
-                />
-
-                <select
-                  className="input"
-                  value={bankForm.account_type}
-                  onChange={(e) =>
-                    setBankForm({ ...bankForm, account_type: e.target.value })
-                  }
-                  disabled={bankLoading}
                 >
-                  <option value="SAVINGS">Cuenta de ahorros</option>
-                  <option value="CHECKING">Cuenta corriente</option>
+                  <option value="">Selecciona entidad</option>
+                  <option value="BANCOLOMBIA">Bancolombia</option>
+                  <option value="DAVIVIENDA">Davivienda</option>
+                  <option value="BBVA">BBVA</option>
+                  <option value="NEQUI">Nequi</option>
+                  <option value="DAVIPLATA">Daviplata</option>
                 </select>
                 
+                {/* TIPO DE CUENTA (solo si no es billetera) */}
+                {!isWallet && (
+                  <select
+                    className="input text-center"
+                    value={bankForm.account_type}
+                    onChange={(e) =>
+                      setBankForm({ ...bankForm, account_type: e.target.value })
+                    }
+                    disabled={bankLoading}
+                  >
+                    <option value="SAVINGS">Cuenta de ahorros</option>
+                    <option value="CHECKING">Cuenta corriente</option>
+                  </select>
+                )}
+      
+                {/* NUMERO */}
                 <input
-                  className="input"
-                  placeholder="Número de cuenta"
+                  className="input text-center"
+                  placeholder={
+                    isWallet
+                      ? "Número celular (10 dígitos)"
+                      : "Número de cuenta bancaria"
+                  }
                   value={bankForm.account_number}
-                  onChange={(e) =>
-                    setBankForm({ ...bankForm, account_number: e.target.value })
-                  }
-                  disabled={bankLoading}
-                />
-
-                <input
-                  className="input"
-                  placeholder="Nombre titular"
-                  value={bankForm.account_holder_name}
-                  onChange={(e) =>
-                    setBankForm({ ...bankForm, account_holder_name: e.target.value })
-                  }
-                  disabled={bankLoading}
-                />
-
-                <input
-                  className="input"
-                  placeholder="Documento titular"
-                  value={bankForm.account_holder_document}
                   onChange={(e) =>
                     setBankForm({
                       ...bankForm,
-                      account_holder_document: e.target.value,
+                      account_number: e.target.value.replace(/\D/g, ""),
+                    })
+                  }
+                  disabled={bankLoading}
+                  maxLength={isWallet ? 10 : 20}
+                />
+      
+                {/* TITULAR */}
+                <input
+                  className="input text-center"
+                  placeholder="Nombre completo del titular"
+                  value={bankForm.account_holder_name}
+                  onChange={(e) =>
+                    setBankForm({
+                      ...bankForm,
+                      account_holder_name: e.target.value.toUpperCase(),
                     })
                   }
                   disabled={bankLoading}
                 />
-
+      
+                {/* DOCUMENTO */}
+                <input
+                  className="input text-center"
+                  placeholder="Documento del titular"
+                  value={bankForm.account_holder_document}
+                  onChange={(e) =>
+                    setBankForm({
+                      ...bankForm,
+                      account_holder_document: e.target.value.replace(/\D/g, ""),
+                    })
+                  }
+                  disabled={bankLoading}
+                />
+      
+                {/* ERROR */}
                 {bankError && (
-                  <div className="text-sm text-red-300">{bankError}</div>
+                  <div className="text-sm text-red-300">
+                    {bankError}
+                  </div>
                 )}
-
-                <div className="flex gap-2 justify-end">
+      
+                {/* BOTONES */}
+                <div className="flex gap-3 justify-center pt-2">
                   <button
                     className="btn-ghost"
                     onClick={() => setOpenBankModal(false)}
@@ -1036,13 +1070,13 @@ export default function AppHome() {
                     {bankLoading ? "Guardando..." : "Guardar cuenta"}
                   </button>
                 </div>
+              
               </div>
             </div>
-              
-            <div className="h-6 sm:hidden" />
           </div>
         </div>
       )}
+
 
     </div>
   );
