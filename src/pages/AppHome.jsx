@@ -636,9 +636,9 @@ export default function AppHome() {
                     <button
                       type="button"
                       className="btn-ghost w-full"
-                      onClick={() => alert("Siguiente paso: ver detalle del préstamo")}
+                      onClick={() => nav(`/app/loan/${activeLoan.id}`)}
                     >
-                      Ver detalle
+                      Ver detalles
                     </button>
 
                     <button
