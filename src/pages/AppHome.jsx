@@ -162,11 +162,12 @@ export default function AppHome() {
       if (la?.loan) {
         try {
           const da = await apiFetch("/me/disbursement-account", { auth: true });
-          setDisbursementAccount(da?.account || null);
+          setDisbursementAccount(da?.disbursement_account || null);
         } catch {
           setDisbursementAccount(null);
         }
       }
+
       
     } catch (e) {
       setError(e?.message || "No se pudo cargar tu información.");
