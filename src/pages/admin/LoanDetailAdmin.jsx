@@ -11,26 +11,28 @@ export default function LoanDetailAdmin() {
   const [loan, setLoan] = useState(null);
   const [installments, setInstallments] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [account, setAccount] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
-  const [confirmModal, setConfirmModal] = useState(null);
-  // confirmModal = { type: "approve" | "disburse" }
+  const [openApproveModal, setOpenApproveModal] = useState(false);
+  const [openDisburseModal, setOpenDisburseModal] = useState(false);
 
   const fetchLoan = async () => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     try {
       const data = await apiFetch(`/admin/loans/${id}`);
-      if (!data.ok) throw new Error("Error cargando préstamo");
 
       setLoan(data.loan);
       setInstallments(data.installments || []);
       setPayments(data.payments || []);
+      setAccount(data.disbursement_account || null);
     } catch (e) {
-      setError(e.message);
+      setError(e.message || "Error cargando préstamo");
     } finally {
       setLoading(false);
     }
@@ -38,24 +40,23 @@ export default function LoanDetailAdmin() {
 
   useEffect(() => {
     fetchLoan();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  /* ------------------ ACTIONS ------------------ */
 
   const approveLoan = async () => {
     setActionLoading(true);
-    setError(null);
+    setError("");
 
     try {
-      const data = await apiFetch(`/admin/loans/${id}/approve`, {
+      await apiFetch(`/admin/loans/${id}/approve`, {
         method: "PATCH",
       });
 
-      if (!data.ok) throw new Error("No se pudo aprobar");
-
-      setConfirmModal(null);
+      setOpenApproveModal(false);
       await fetchLoan();
     } catch (e) {
-      setError(e.message);
+      setError(e.message || "No se pudo aprobar");
     } finally {
       setActionLoading(false);
     }
@@ -63,19 +64,17 @@ export default function LoanDetailAdmin() {
 
   const disburseLoan = async () => {
     setActionLoading(true);
-    setError(null);
+    setError("");
 
     try {
-      const data = await apiFetch(`/admin/loans/${id}/disburse`, {
+      await apiFetch(`/admin/loans/${id}/disburse`, {
         method: "PATCH",
       });
 
-      if (!data.ok) throw new Error("No se pudo desembolsar");
-
-      setConfirmModal(null);
+      setOpenDisburseModal(false);
       await fetchLoan();
     } catch (e) {
-      setError(e.message);
+      setError(e.message || "No se pudo desembolsar");
     } finally {
       setActionLoading(false);
     }
@@ -85,33 +84,18 @@ export default function LoanDetailAdmin() {
     return <div className="text-white/60">Cargando préstamo…</div>;
   }
 
-  if (error && !loan) {
-    return (
-      <div className="space-y-4">
-        <p className="text-red-400">{error}</p>
-        <button
-          onClick={() => navigate(-1)}
-          className="rounded-lg border border-white/10 px-4 py-2 text-sm"
-        >
-          Volver
-        </button>
-      </div>
-    );
-  }
-
   if (!loan) {
-    return <div className="text-white/60">Préstamo no encontrado</div>;
+    return <div className="text-red-400">Préstamo no encontrado</div>;
   }
 
   const canDisburse =
     loan.status === "APPROVED" &&
     !loan.disbursed_at &&
-    loan.disbursement_account &&
-    loan.disbursement_account.is_verified === true;
+    account &&
+    account.is_verified;
 
   return (
     <div className="space-y-8">
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-black">Detalle del Préstamo</h1>
@@ -123,7 +107,7 @@ export default function LoanDetailAdmin() {
         </button>
       </div>
 
-      {/* Error global */}
+      {/* Error banner */}
       {error && (
         <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-300">
           {error}
@@ -146,15 +130,23 @@ export default function LoanDetailAdmin() {
         </Card>
 
         <Card title="KYC">
-          {loan.kyc_status}
+          <span className="font-semibold">{loan.kyc_status}</span>
         </Card>
 
-        <Card title="Creado">
-          {new Date(loan.created_at).toLocaleString()}
-        </Card>
-
-        <Card title="Actualizado">
-          {new Date(loan.updated_at).toLocaleString()}
+        <Card title="Cuenta bancaria">
+          {account ? (
+            account.is_verified ? (
+              <span className="text-green-300 font-semibold">
+                Verificada
+              </span>
+            ) : (
+              <span className="text-yellow-300 font-semibold">
+                Pendiente validación
+              </span>
+            )
+          ) : (
+            <span className="text-red-400">No registrada</span>
+          )}
         </Card>
       </div>
 
@@ -162,119 +154,130 @@ export default function LoanDetailAdmin() {
       <div className="flex flex-wrap gap-3">
 
         {loan.status === "PENDING" && (
-          <ActionButton
-            loading={actionLoading}
-            onClick={() => setConfirmModal({ type: "approve" })}
-            label="Aprobar préstamo"
-          />
+          <button
+            onClick={() => setOpenApproveModal(true)}
+            disabled={actionLoading}
+            className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-white/90 disabled:opacity-50"
+          >
+            Aprobar préstamo
+          </button>
         )}
 
         {loan.status === "APPROVED" && (
-          <ActionButton
-            loading={actionLoading}
-            onClick={() => setConfirmModal({ type: "disburse" })}
-            label="Desembolsar"
-            disabled={!canDisburse}
-          />
+          <button
+            onClick={() => setOpenDisburseModal(true)}
+            disabled={!canDisburse || actionLoading}
+            className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-white/90 disabled:opacity-40"
+          >
+            Desembolsar
+          </button>
         )}
       </div>
 
-      {loan.status === "APPROVED" &&
-        loan.disbursement_account &&
-        !loan.disbursement_account.is_verified && (
-          <div className="text-yellow-300 text-sm">
-            La cuenta bancaria debe estar verificada antes del desembolso.
-          </div>
-        )}
-
-      {loan.status === "APPROVED" &&
-        !loan.disbursement_account && (
-          <div className="text-red-300 text-sm">
-            No hay cuenta bancaria registrada.
-          </div>
-        )}
-
-      {/* Installments + Payments (igual que antes) */}
-      {/* ... (sin cambios estructurales) */}
-
-      {/* -------- MODAL -------- */}
-      {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() =>
-              actionLoading ? null : setConfirmModal(null)
-            }
-          />
-
-          <div className="relative w-full max-w-md">
-            <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 space-y-4 text-center shadow-xl">
-
-              <div className="text-white font-bold text-xl">
-                {confirmModal.type === "approve"
-                  ? "Confirmar aprobación"
-                  : "Confirmar desembolso"}
-              </div>
-
-              <div className="text-sm text-white/70 space-y-2">
-                {confirmModal.type === "approve" ? (
-                  <p>
-                    Confirma que deseas aprobar este préstamo.
-                  </p>
-                ) : (
-                  <p>
-                    Confirma que deseas desembolsar este préstamo.
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-3 justify-center pt-2">
-                <button
-                  className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50"
-                  onClick={() => setConfirmModal(null)}
-                  disabled={actionLoading}
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-white/90 disabled:opacity-60"
-                  onClick={
-                    confirmModal.type === "approve"
-                      ? approveLoan
-                      : disburseLoan
-                  }
-                  disabled={actionLoading}
-                >
-                  {actionLoading
-                    ? "Procesando..."
-                    : "Sí, confirmar"}
-                </button>
-              </div>
-
-            </div>
-          </div>
+      {!canDisburse && loan.status === "APPROVED" && (
+        <div className="text-yellow-300 text-sm">
+          No se puede desembolsar hasta que la cuenta bancaria esté validada.
         </div>
       )}
+
+      {/* ---------- MODAL APROBAR ---------- */}
+      {openApproveModal && (
+        <Modal
+          title="Confirmar aprobación"
+          description="¿Confirmas la aprobación de este préstamo?"
+          loading={actionLoading}
+          onCancel={() => setOpenApproveModal(false)}
+          onConfirm={approveLoan}
+        />
+      )}
+
+      {/* ---------- MODAL DESEMBOLSAR ---------- */}
+      {openDisburseModal && (
+        <Modal
+          title="Confirmar desembolso"
+          description="Esta acción enviará el dinero al cliente. ¿Deseas continuar?"
+          loading={actionLoading}
+          onCancel={() => setOpenDisburseModal(false)}
+          onConfirm={disburseLoan}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ---------- Modal reutilizable ---------- */
+
+function Modal({ title, description, onCancel, onConfirm, loading }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={() => (!loading ? onCancel() : null)}
+      />
+
+      <div className="relative w-full max-w-md">
+        <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 space-y-4 text-center shadow-xl">
+
+          <div className="text-white font-bold text-xl">
+            {title}
+          </div>
+
+          <div className="text-sm text-white/70">
+            {description}
+          </div>
+
+          <div className="flex gap-3 justify-center pt-2">
+            <button
+              className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+
+            <button
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-white/90 disabled:opacity-60"
+              onClick={onConfirm}
+              disabled={loading}
+            >
+              {loading ? "Procesando..." : "Confirmar"}
+            </button>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 }
 
 /* ---------- UI Helpers ---------- */
 
-function ActionButton({ label, onClick, loading, disabled }) {
+function Card({ title, children }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={loading || disabled}
-      className={`rounded-xl px-5 py-2 text-sm font-semibold ${
-        disabled
-          ? "bg-white/20 text-white/40 cursor-not-allowed"
-          : "bg-white text-slate-900 hover:bg-white/90"
-      } disabled:opacity-50`}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="mb-1 text-xs text-white/60">{title}</div>
+      <div className="font-semibold">{children}</div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  const map = {
+    PENDING: "bg-yellow-500/20 text-yellow-300",
+    APPROVED: "bg-blue-500/20 text-blue-300",
+    DISBURSED: "bg-indigo-500/20 text-indigo-300",
+    CLOSED: "bg-green-500/20 text-green-300",
+    REJECTED: "bg-red-500/20 text-red-300",
+  };
+
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+        map[status] || "bg-white/10 text-white"
+      }`}
     >
-      {loading ? "Procesando…" : label}
-    </button>
+      {status}
+    </span>
   );
 }
