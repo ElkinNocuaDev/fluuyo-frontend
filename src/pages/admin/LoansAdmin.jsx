@@ -154,6 +154,17 @@ export default function LoansAdmin() {
                     >
                       Pagos
                     </button>
+
+                    {loan.status === "APPROVED" && (
+                      <button
+                        onClick={() =>
+                          navigate(`/admin/loans/${loan.id}/verify-account`)
+                        }
+                        className="rounded-lg border border-blue-400/30 px-3 py-1.5 text-xs font-semibold text-blue-300 hover:bg-blue-500/10"
+                      >
+                        Verificar Cuenta
+                      </button>
+                    )}
                   </div>
                 </td>
                 </tr>

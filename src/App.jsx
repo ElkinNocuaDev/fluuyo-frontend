@@ -138,7 +138,7 @@ export default function App() {
           <Route path="kyc" element={<KycAdmin />} />
           <Route path="kyc/:userId" element={<KycUserDetailAdmin />} />
 
-          <Route path="verify-account/:id" element={<VerifyAccountAdmin />} />
+          <Route path="loans/:id/verify-account" element={<VerifyAccountAdmin />} />
         </Route>
 
         {/* Fallback robusto (deep links / PWA) */}
