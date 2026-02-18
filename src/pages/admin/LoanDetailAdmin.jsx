@@ -74,7 +74,15 @@ export default function LoanDetailAdmin() {
       setOpenDisburseModal(false);
       await fetchLoan();
     } catch (e) {
-      setError(e.message || "No se pudo desembolsar");
+      if (e.code === "INSTALLMENTS_ALREADY_EXIST") {
+        setError("El cronograma ya fue generado para este préstamo.");
+      } else if (e.code === "NO_VERIFIED_DISBURSEMENT_ACCOUNT") {
+        setError("No existe cuenta bancaria verificada.");
+      } else if (e.code === "ALREADY_DISBURSED") {
+        setError("El préstamo ya fue desembolsado.");
+      } else {
+        setError(e.message || "No se pudo desembolsar");
+      }
     } finally {
       setActionLoading(false);
     }
@@ -148,11 +156,16 @@ export default function LoanDetailAdmin() {
             <span className="text-red-400">No registrada</span>
           )}
         </Card>
+
+        {loan.disbursed_at && (
+          <Card title="Fecha desembolso">
+            {new Date(loan.disbursed_at).toLocaleString("es-CO")}
+          </Card>
+        )}
       </div>
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
-
         {loan.status === "PENDING" && (
           <button
             onClick={() => setOpenApproveModal(true)}
@@ -163,10 +176,10 @@ export default function LoanDetailAdmin() {
           </button>
         )}
 
-        {loan.status === "APPROVED" && (
+        {canDisburse && (
           <button
             onClick={() => setOpenDisburseModal(true)}
-            disabled={!canDisburse || actionLoading}
+            disabled={actionLoading}
             className="rounded-xl bg-white px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-white/90 disabled:opacity-40"
           >
             Desembolsar
@@ -177,6 +190,78 @@ export default function LoanDetailAdmin() {
       {!canDisburse && loan.status === "APPROVED" && (
         <div className="text-yellow-300 text-sm">
           No se puede desembolsar hasta que la cuenta bancaria esté validada.
+        </div>
+      )}
+
+      {/* ---------------- CRONOGRAMA ---------------- */}
+      {loan.status === "DISBURSED" && installments.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold">Cronograma</h2>
+
+          <div className="rounded-2xl border border-white/10 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-white/60">
+                <tr>
+                  <th className="p-3 text-left">#</th>
+                  <th className="p-3 text-left">Vencimiento</th>
+                  <th className="p-3 text-left">Monto</th>
+                  <th className="p-3 text-left">Pagado</th>
+                  <th className="p-3 text-left">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {installments.map((inst) => (
+                  <tr key={inst.id} className="border-t border-white/5">
+                    <td className="p-3">{inst.installment_number}</td>
+                    <td className="p-3">
+                      {new Date(inst.due_date).toLocaleDateString("es-CO")}
+                    </td>
+                    <td className="p-3">
+                      ${Number(inst.amount_due_cop).toLocaleString("es-CO")}
+                    </td>
+                    <td className="p-3">
+                      ${Number(inst.amount_paid_cop || 0).toLocaleString("es-CO")}
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge status={inst.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- PAGOS ---------------- */}
+      {payments.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold">Pagos registrados</h2>
+
+          <div className="rounded-2xl border border-white/10 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-white/60">
+                <tr>
+                  <th className="p-3 text-left">Fecha</th>
+                  <th className="p-3 text-left">Monto</th>
+                  <th className="p-3 text-left">Referencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id} className="border-t border-white/5">
+                    <td className="p-3">
+                      {new Date(p.created_at).toLocaleString("es-CO")}
+                    </td>
+                    <td className="p-3">
+                      ${Number(p.amount_cop).toLocaleString("es-CO")}
+                    </td>
+                    <td className="p-3">{p.reference || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -210,7 +295,6 @@ export default function LoanDetailAdmin() {
 function Modal({ title, description, onCancel, onConfirm, loading }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={() => (!loading ? onCancel() : null)}
@@ -218,14 +302,9 @@ function Modal({ title, description, onCancel, onConfirm, loading }) {
 
       <div className="relative w-full max-w-md">
         <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 space-y-4 text-center shadow-xl">
+          <div className="text-white font-bold text-xl">{title}</div>
 
-          <div className="text-white font-bold text-xl">
-            {title}
-          </div>
-
-          <div className="text-sm text-white/70">
-            {description}
-          </div>
+          <div className="text-sm text-white/70">{description}</div>
 
           <div className="flex gap-3 justify-center pt-2">
             <button
@@ -244,7 +323,6 @@ function Modal({ title, description, onCancel, onConfirm, loading }) {
               {loading ? "Procesando..." : "Confirmar"}
             </button>
           </div>
-
         </div>
       </div>
     </div>
