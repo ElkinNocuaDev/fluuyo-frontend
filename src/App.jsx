@@ -22,6 +22,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import LoanDetail from "./pages/LoanDetail";
+import VerifyAccountAdmin from "./pages/admin/VerifyAccountAdmin";
 
 
 export default function App() {
@@ -136,6 +137,8 @@ export default function App() {
         
           <Route path="kyc" element={<KycAdmin />} />
           <Route path="kyc/:userId" element={<KycUserDetailAdmin />} />
+
+          <Route path="verify-account/:id" element={<VerifyAccountAdmin />} />
         </Route>
 
         {/* Fallback robusto (deep links / PWA) */}
