@@ -11,9 +11,11 @@ export default function VerifyAccountAdmin() {
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
+  const [openConfirmModal, setOpenConfirmModal] = useState(false);
 
   const fetchLoan = async () => {
     setLoading(true);
+    setError("");
     try {
       const data = await apiFetch(`/admin/loans/${id}`);
       setLoan(data.loan || null);
@@ -32,41 +34,34 @@ export default function VerifyAccountAdmin() {
   }, [id]);
 
   const handleVerify = async () => {
-    if (!window.confirm("¿Confirmas que validaste manualmente la cuenta bancaria?")) {
-      return;
-    }
-
     setVerifying(true);
+    setError("");
+
     try {
       await apiFetch(
         `/admin/loans/${id}/verify-disbursement-account`,
         { method: "PATCH" }
       );
 
+      setOpenConfirmModal(false);
       await fetchLoan();
     } catch (err) {
-      alert(err.message || "Error al verificar cuenta.");
+      setError(err.message || "Error al verificar cuenta.");
     } finally {
       setVerifying(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="text-white/60">Cargando información…</div>
-    );
+    return <div className="text-white/60">Cargando información…</div>;
   }
 
-  if (error) {
-    return (
-      <div className="text-red-400">{error}</div>
-    );
+  if (error && !loan) {
+    return <div className="text-red-400">{error}</div>;
   }
 
   if (!loan) {
-    return (
-      <div className="text-white/60">Préstamo no encontrado.</div>
-    );
+    return <div className="text-white/60">Préstamo no encontrado.</div>;
   }
 
   const canVerify =
@@ -91,6 +86,13 @@ export default function VerifyAccountAdmin() {
           ← Volver
         </button>
       </div>
+
+      {/* Error global */}
+      {error && (
+        <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       {/* Loan Info */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-2">
@@ -128,27 +130,16 @@ export default function VerifyAccountAdmin() {
 
         {account && (
           <>
-            <div className="flex justify-between">
-              <span className="text-white/60">Banco</span>
-              <span>{account.bank_name}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-white/60">Tipo</span>
-              <span>{account.account_type}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-white/60">Número</span>
-              <span>
-                ****{account.account_number.slice(-4)}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-white/60">Titular</span>
-              <span>{account.account_holder_name}</span>
-            </div>
+            <InfoRow label="Banco" value={account.bank_name} />
+            <InfoRow label="Tipo" value={account.account_type} />
+            <InfoRow
+              label="Número"
+              value={`****${account.account_number.slice(-4)}`}
+            />
+            <InfoRow
+              label="Titular"
+              value={account.account_holder_name}
+            />
 
             <div className="flex justify-between">
               <span className="text-white/60">Estado</span>
@@ -165,13 +156,11 @@ export default function VerifyAccountAdmin() {
 
             {canVerify && (
               <button
-                onClick={handleVerify}
+                onClick={() => setOpenConfirmModal(true)}
                 disabled={verifying}
                 className="w-full rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-white/90 disabled:opacity-60"
               >
-                {verifying
-                  ? "Verificando..."
-                  : "Verificar Cuenta Bancaria"}
+                Verificar Cuenta Bancaria
               </button>
             )}
 
@@ -183,6 +172,60 @@ export default function VerifyAccountAdmin() {
           </>
         )}
       </div>
+
+      {/* -------- MODAL -------- */}
+      {openConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() =>
+              verifying ? null : setOpenConfirmModal(false)
+            }
+          />
+
+          <div className="relative w-full max-w-md">
+            <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 space-y-4 text-center shadow-xl">
+
+              <div className="text-white font-bold text-xl">
+                Confirmar verificación
+              </div>
+
+              <div className="text-sm text-white/70 space-y-2">
+                <p>
+                  Confirma que validaste manualmente la titularidad
+                  contra el extracto bancario cargado en el KYC.
+                </p>
+
+                <p className="text-yellow-300 text-xs">
+                  Esta acción habilita el desembolso del préstamo.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-center pt-2">
+                <button
+                  className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50"
+                  onClick={() => setOpenConfirmModal(false)}
+                  disabled={verifying}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-white/90 disabled:opacity-60"
+                  onClick={handleVerify}
+                  disabled={verifying}
+                >
+                  {verifying
+                    ? "Confirmando..."
+                    : "Sí, confirmar verificación"}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
@@ -207,5 +250,14 @@ function StatusBadge({ status }) {
     >
       {status}
     </span>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-white/60">{label}</span>
+      <span>{value}</span>
+    </div>
   );
 }
