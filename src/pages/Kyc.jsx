@@ -25,14 +25,14 @@ const LABELS = {
   ID_FRONT: "Cédula (frente)",
   ID_BACK: "Cédula (respaldo)",
   SELFIE: "Selfie",
-  PROOF_ADDRESS: "Prueba de domicilio",
+  PROOF_ADDRESS: "Extracto bancario",
 };
 
 const HINTS = {
   ID_FRONT: "Foto nítida del frente de tu cédula.",
   ID_BACK: "Foto nítida del respaldo de tu cédula.",
   SELFIE: "Selfie con buena luz, sin filtros.",
-  PROOF_ADDRESS: "Recibo/Extracto (servicios) o documento equivalente.",
+  PROOF_ADDRESS: "Extracto bancario (emitido en los últimos 30 días).",
 };
 
 function toneByKycStatus(s) {

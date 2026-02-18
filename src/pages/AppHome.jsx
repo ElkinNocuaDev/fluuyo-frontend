@@ -981,6 +981,17 @@ export default function AppHome() {
                 Registrar cuenta bancaria
               </div>
 
+              <div className="mt-3 rounded-lg bg-yellow-500/10 border border-yellow-400/40 p-3 text-sm text-yellow-200">
+                <p className="font-semibold mb-1">Importante</p>
+                <p>
+                  La cuenta bancaria debe estar a tu nombre y coincidir exactamente con el
+                  extracto bancario cargado en tu verificación (emitido en los últimos 30 días).
+                </p>
+                <p className="mt-1">
+                  Si la información no coincide, el desembolso no podrá realizarse.
+                </p>
+              </div>
+
               <div className="mt-5 grid gap-4">
 
                 {/* ENTIDAD */}
