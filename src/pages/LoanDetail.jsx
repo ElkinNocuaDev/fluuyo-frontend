@@ -80,7 +80,7 @@ export default function LoanDetail() {
 
   return (
     <AppLayout>
-        <div className="bg-aurora min-h-screen px-4 py-8 text-white">
+        <div className="px-4 py-8 text-white">
           <div className="max-w-3xl mx-auto space-y-6">
 
         {/* Header con botón volver */}
