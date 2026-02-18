@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
+import AppLayout from "../components/AppLayout";
 
 function formatCOP(value) {
   if (value == null) return "-";
@@ -78,9 +79,9 @@ export default function LoanDetail() {
     );
 
   return (
-
+    <AppLayout>
         <div className="bg-aurora min-h-screen px-4 py-8 text-white">
-      <div className="max-w-3xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-6">
 
         {/* Header con botón volver */}
         <div className="flex items-center justify-between">
@@ -217,7 +218,8 @@ export default function LoanDetail() {
           </div>
         )}
 
-      </div>
-    </div>
+          </div>
+        </div>
+    </AppLayout>
   );
 }
