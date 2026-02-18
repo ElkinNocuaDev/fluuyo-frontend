@@ -217,7 +217,7 @@ export default function LoanDetailAdmin() {
                       {new Date(inst.due_date).toLocaleDateString("es-CO")}
                     </td>
                     <td className="p-3">
-                      ${Number(inst.amount_due_cop).toLocaleString("es-CO")}
+                      ${Number(inst.amount_cop || 0).toLocaleString("es-CO")}
                     </td>
                     <td className="p-3">
                       ${Number(inst.amount_paid_cop || 0).toLocaleString("es-CO")}
