@@ -46,7 +46,7 @@ export default function LoanPaymentCreate() {
   if (!user) return <Navigate to="/login" replace />;
 
   /* ==============================
-     Carga de préstamo y cuota
+     Carga préstamo + cuota
   ============================== */
 
   useEffect(() => {
@@ -57,12 +57,18 @@ export default function LoanPaymentCreate() {
           return;
         }
 
-        // 🔥 Endpoint correcto
+        setLoading(true);
+        setError("");
+
+        // ✅ ÚNICO endpoint necesario
         const res = await apiFetch(`/loans/${loanId}`, {
           auth: true,
         });
 
-        const inst = res.installments?.find(
+        const loanData = res.loan;
+        const installments = loanData?.installments || [];
+
+        const inst = installments.find(
           (i) => i.id === installmentId
         );
 
@@ -76,8 +82,9 @@ export default function LoanPaymentCreate() {
           return;
         }
 
-        setLoan(res.loan);
+        setLoan(loanData);
         setInstallment(inst);
+
       } catch (e) {
         setError(e.message || "No se pudo cargar la cuota.");
       } finally {
@@ -101,17 +108,23 @@ export default function LoanPaymentCreate() {
     try {
       setSubmitting(true);
 
-      const amountToPay =
+      const pendingAmount =
         installment.amount_due_cop -
         (installment.amount_paid_cop || 0);
 
+      if (pendingAmount <= 0) {
+        setError("Esta cuota ya está completamente pagada.");
+        return;
+      }
+
       const payload = {
         installment_id: installment.id,
-        amount_cop: amountToPay,
+        amount_cop: pendingAmount,
         method,
         reference,
       };
 
+      // ✅ Endpoint correcto
       const res = await apiFetch(
         `/loans/${loanId}/payments`,
         {
@@ -122,6 +135,7 @@ export default function LoanPaymentCreate() {
       );
 
       setSuccessPayment(res.payment);
+
     } catch (e) {
       setError(e.message || "No se pudo registrar el pago.");
     } finally {
@@ -203,7 +217,7 @@ export default function LoanPaymentCreate() {
   }
 
   /* ==============================
-     Formulario
+     Render formulario
   ============================== */
 
   const pendingAmount =
@@ -215,7 +229,6 @@ export default function LoanPaymentCreate() {
       <div className="px-4 py-8 text-white">
         <div className="max-w-2xl mx-auto space-y-6">
 
-          {/* Header */}
           <div>
             <button
               className="btn-ghost"
@@ -231,7 +244,6 @@ export default function LoanPaymentCreate() {
             Pagar cuota #{installment.installment_number}
           </h1>
 
-          {/* Información de cuota */}
           <div className="card-glass p-6 space-y-3">
             <div className="flex justify-between">
               <span className="text-white/60">Vencimiento</span>
@@ -246,7 +258,6 @@ export default function LoanPaymentCreate() {
             </div>
           </div>
 
-          {/* Formulario */}
           <form
             onSubmit={handleSubmit}
             className="card-glass p-6 space-y-5"
