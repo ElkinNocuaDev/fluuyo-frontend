@@ -45,6 +45,10 @@ export default function LoanPaymentCreate() {
   if (booting) return null;
   if (!user) return <Navigate to="/login" replace />;
 
+  /* ==============================
+     Carga de préstamo y cuota
+  ============================== */
+
   useEffect(() => {
     async function load() {
       try {
@@ -53,18 +57,27 @@ export default function LoanPaymentCreate() {
           return;
         }
 
-        const res = await apiFetch(
-          `/loans/${loanId}/installments/${installmentId}`,
-          { auth: true }
+        // 🔥 Endpoint correcto
+        const res = await apiFetch(`/loans/${loanId}`, {
+          auth: true,
+        });
+
+        const inst = res.installments?.find(
+          (i) => i.id === installmentId
         );
 
-        if (res.installment?.status !== "PENDING") {
+        if (!inst) {
+          setError("Cuota no encontrada.");
+          return;
+        }
+
+        if (inst.status !== "PENDING") {
           nav(`/app/loans/${loanId}/payments`, { replace: true });
           return;
         }
 
         setLoan(res.loan);
-        setInstallment(res.installment);
+        setInstallment(inst);
       } catch (e) {
         setError(e.message || "No se pudo cargar la cuota.");
       } finally {
@@ -75,6 +88,10 @@ export default function LoanPaymentCreate() {
     load();
   }, [loanId, installmentId, nav]);
 
+  /* ==============================
+     Submit pago
+  ============================== */
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -84,9 +101,13 @@ export default function LoanPaymentCreate() {
     try {
       setSubmitting(true);
 
+      const amountToPay =
+        installment.amount_due_cop -
+        (installment.amount_paid_cop || 0);
+
       const payload = {
         installment_id: installment.id,
-        amount_cop: installment.amount_cop,
+        amount_cop: amountToPay,
         method,
         reference,
       };
@@ -185,6 +206,10 @@ export default function LoanPaymentCreate() {
      Formulario
   ============================== */
 
+  const pendingAmount =
+    installment.amount_due_cop -
+    (installment.amount_paid_cop || 0);
+
   return (
     <AppLayout>
       <div className="px-4 py-8 text-white">
@@ -203,7 +228,7 @@ export default function LoanPaymentCreate() {
           </div>
 
           <h1 className="text-2xl font-bold">
-            Pagar cuota #{installment.number}
+            Pagar cuota #{installment.installment_number}
           </h1>
 
           {/* Información de cuota */}
@@ -214,9 +239,9 @@ export default function LoanPaymentCreate() {
             </div>
 
             <div className="flex justify-between">
-              <span className="text-white/60">Monto</span>
+              <span className="text-white/60">Monto pendiente</span>
               <span className="font-semibold">
-                {formatCOP(installment.amount_cop)}
+                {formatCOP(pendingAmount)}
               </span>
             </div>
           </div>
@@ -270,7 +295,7 @@ export default function LoanPaymentCreate() {
             >
               {submitting
                 ? "Enviando..."
-                : "Confirmar pago"}
+                : `Confirmar pago ${formatCOP(pendingAmount)}`}
             </button>
           </form>
 
