@@ -28,6 +28,8 @@ function statusBadge(status) {
       return `${base} bg-yellow-500/20 text-yellow-300`;
     case "OVERDUE":
       return `${base} bg-red-500/20 text-red-300`;
+    case "PENDING":
+      return `${base} bg-blue-500/20 text-blue-300`;
     default:
       return `${base} bg-white/10 text-white`;
   }
@@ -40,6 +42,9 @@ export default function LoanPaymentSchedule() {
 
   const [loan, setLoan] = useState(null);
   const [installments, setInstallments] = useState([]);
+  const [financial, setFinancial] = useState(null);
+  const [permissions, setPermissions] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -49,12 +54,14 @@ export default function LoanPaymentSchedule() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await apiFetch(`/loans/${loanId}/installments`, {
+        const res = await apiFetch(`/loans/${loanId}`, {
           auth: true,
         });
 
         setLoan(res.loan || null);
         setInstallments(res.installments || []);
+        setFinancial(res.financial_summary || null);
+        setPermissions(res.permissions || null);
       } catch (e) {
         setError(e.message || "No se pudo cargar el cronograma.");
       } finally {
@@ -81,6 +88,14 @@ export default function LoanPaymentSchedule() {
     );
   }
 
+  if (!loan) {
+    return (
+      <div className="bg-aurora min-h-screen flex items-center justify-center text-white">
+        Préstamo no encontrado.
+      </div>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="px-4 py-8 text-white">
@@ -90,13 +105,13 @@ export default function LoanPaymentSchedule() {
           <div className="flex items-center justify-between">
             <button
               className="btn-ghost"
-              onClick={() => nav(`/app/loans/${loanId}`)}
+              onClick={() => nav(`/app/loan/${loanId}`)}
             >
               ← Volver al préstamo
             </button>
 
             <div className="text-sm px-3 py-1 rounded-full bg-white/10">
-              {loan?.status || "Préstamo"}
+              {loan.status}
             </div>
           </div>
 
@@ -104,8 +119,8 @@ export default function LoanPaymentSchedule() {
             Cronograma de pagos
           </h1>
 
-          {/* Resumen rápido */}
-          {loan && (
+          {/* Resumen financiero */}
+          {financial && (
             <div className="card-glass p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <div className="text-white/60 text-sm">
@@ -118,19 +133,19 @@ export default function LoanPaymentSchedule() {
 
               <div>
                 <div className="text-white/60 text-sm">
-                  Plazo
+                  Total pagado
                 </div>
                 <div className="font-semibold">
-                  {loan.term_months} meses
+                  {formatCOP(financial.total_paid_cop)}
                 </div>
               </div>
 
               <div>
                 <div className="text-white/60 text-sm">
-                  Estado
+                  Saldo restante
                 </div>
                 <div className="font-semibold">
-                  {loan.status}
+                  {formatCOP(financial.remaining_balance_cop)}
                 </div>
               </div>
             </div>
@@ -144,6 +159,7 @@ export default function LoanPaymentSchedule() {
                   <th className="text-left px-4 py-3">#</th>
                   <th className="text-left px-4 py-3">Vencimiento</th>
                   <th className="text-left px-4 py-3">Monto</th>
+                  <th className="text-left px-4 py-3">Pagado</th>
                   <th className="text-left px-4 py-3">Estado</th>
                   <th className="text-right px-4 py-3">Acciones</th>
                 </tr>
@@ -153,7 +169,7 @@ export default function LoanPaymentSchedule() {
                 {installments.length === 0 && (
                   <tr>
                     <td
-                      colSpan="5"
+                      colSpan="6"
                       className="px-4 py-6 text-center text-white/60"
                     >
                       No hay cuotas registradas.
@@ -167,7 +183,7 @@ export default function LoanPaymentSchedule() {
                     className="border-t border-white/5 hover:bg-white/5 transition"
                   >
                     <td className="px-4 py-4 font-medium">
-                      {inst.number}
+                      {inst.installment_number}
                     </td>
 
                     <td className="px-4 py-4">
@@ -175,7 +191,11 @@ export default function LoanPaymentSchedule() {
                     </td>
 
                     <td className="px-4 py-4">
-                      {formatCOP(inst.amount_cop)}
+                      {formatCOP(inst.amount_due_cop)}
+                    </td>
+
+                    <td className="px-4 py-4">
+                      {formatCOP(inst.amount_paid_cop)}
                     </td>
 
                     <td className="px-4 py-4">
@@ -185,6 +205,8 @@ export default function LoanPaymentSchedule() {
                     </td>
 
                     <td className="px-4 py-4 text-right space-x-2">
+
+                      {/* Ver pago */}
                       {inst.status === "PAID" && inst.payment_id && (
                         <button
                           className="btn-ghost text-sm"
@@ -198,19 +220,22 @@ export default function LoanPaymentSchedule() {
                         </button>
                       )}
 
-                      {inst.status === "PENDING" && (
-                        <button
-                          className="btn-primary text-sm"
-                          onClick={() =>
-                            nav(
-                              `/app/loans/${loanId}/payments/new?installment=${inst.id}`
-                            )
-                          }
-                        >
-                          Pagar
-                        </button>
-                      )}
+                      {/* Pagar */}
+                      {inst.status === "PENDING" &&
+                        permissions?.can_register_payment && (
+                          <button
+                            className="btn-primary text-sm"
+                            onClick={() =>
+                              nav(
+                                `/app/loans/${loanId}/payments/new?installment=${inst.id}`
+                              )
+                            }
+                          >
+                            Pagar
+                          </button>
+                        )}
 
+                      {/* En validación */}
                       {inst.status === "UNDER_REVIEW" && (
                         <button
                           disabled
@@ -219,6 +244,7 @@ export default function LoanPaymentSchedule() {
                           En validación
                         </button>
                       )}
+
                     </td>
                   </tr>
                 ))}
