@@ -25,7 +25,7 @@ import LoanDetail from "./pages/LoanDetail";
 import VerifyAccountAdmin from "./pages/admin/VerifyAccountAdmin";
 import LoanPaymentCreate from "./pages/LoanPaymentCreate";
 import LoanPaymentDetail from "./pages/LoanPaymentDetail";
-
+import LoanPaymentSchedule from "./pages/LoanPaymentSchedule";
 
 export default function App() {
   return (
@@ -130,6 +130,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <LoanPaymentDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/app/loans/:loanId/payments"
+          element={
+            <ProtectedRoute>
+              <LoanPaymentSchedule />
             </ProtectedRoute>
           }
         />

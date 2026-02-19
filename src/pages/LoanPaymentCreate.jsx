@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, Navigate, useNavigate } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  Navigate,
+  useSearchParams,
+} from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthProvider";
 import AppLayout from "../components/AppLayout";
@@ -13,18 +18,24 @@ function formatCOP(value) {
   }).format(value);
 }
 
+function formatDate(date) {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("es-CO");
+}
+
 export default function LoanPaymentCreate() {
   const { loanId } = useParams();
+  const [searchParams] = useSearchParams();
+  const installmentId = searchParams.get("installment");
+
   const nav = useNavigate();
   const { user, booting } = useAuth();
 
   const [loan, setLoan] = useState(null);
-  const [financial, setFinancial] = useState(null);
+  const [installment, setInstallment] = useState(null);
 
-  const [amount, setAmount] = useState("");
-  const [reference, setReference] = useState("");
   const [method, setMethod] = useState("bank_transfer");
-  const [receiptFile, setReceiptFile] = useState(null);
+  const [reference, setReference] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -37,34 +48,47 @@ export default function LoanPaymentCreate() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await apiFetch(`/loans/${loanId}`, { auth: true });
+        if (!installmentId) {
+          nav(`/app/loans/${loanId}/payments`, { replace: true });
+          return;
+        }
+
+        const res = await apiFetch(
+          `/loans/${loanId}/installments/${installmentId}`,
+          { auth: true }
+        );
+
+        if (res.installment?.status !== "PENDING") {
+          nav(`/app/loans/${loanId}/payments`, { replace: true });
+          return;
+        }
+
         setLoan(res.loan);
-        setFinancial(res.financial_summary);
+        setInstallment(res.installment);
       } catch (e) {
-        setError("No se pudo cargar el préstamo.");
+        setError(e.message || "No se pudo cargar la cuota.");
       } finally {
         setLoading(false);
       }
     }
+
     load();
-  }, [loanId]);
+  }, [loanId, installmentId, nav]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (!amount || Number(amount) <= 0) {
-      setError("Ingresa un monto válido.");
-      return;
-    }
+    if (!installment) return;
 
     try {
       setSubmitting(true);
 
       const payload = {
-        amount_cop: Number(amount),
-        reference,
+        installment_id: installment.id,
+        amount_cop: installment.amount_cop,
         method,
+        reference,
       };
 
       const res = await apiFetch(
@@ -84,70 +108,81 @@ export default function LoanPaymentCreate() {
     }
   }
 
-  if (loading)
+  /* ==============================
+     Loading
+  ============================== */
+
+  if (loading) {
     return (
       <div className="bg-aurora min-h-screen flex items-center justify-center text-white">
-        Cargando...
+        Cargando cuota...
       </div>
     );
+  }
 
-  if (error && !loan)
+  if (error && !installment) {
     return (
       <div className="bg-aurora min-h-screen flex items-center justify-center text-red-300">
         {error}
       </div>
     );
+  }
 
-  /* =============================
-     CONFIRMACIÓN EXITOSA
+  /* ==============================
+     Confirmación exitosa
   ============================== */
 
-  if (successPayment)
+  if (successPayment) {
     return (
       <AppLayout>
         <div className="px-4 py-8 text-white">
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-2xl mx-auto">
 
-            <div className="card-glass p-6 space-y-4 text-center">
-              <div className="text-2xl font-bold">
-                Pago registrado
-              </div>
+            <div className="card-glass p-6 text-center space-y-4">
+              <h1 className="text-2xl font-bold">
+                Pago registrado correctamente
+              </h1>
 
-              <div className="text-white/70">
-                Tu pago fue enviado correctamente y está pendiente de validación.
-              </div>
+              <p className="text-white/70">
+                Tu pago está pendiente de validación.
+              </p>
 
-              <div className="pt-4 space-y-2">
-                <div>
-                  <span className="text-white/60">Monto</span>
-                  <div className="text-xl font-semibold">
-                    {formatCOP(successPayment.amount_cop)}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-white/60">Estado</span>
-                  <div>{successPayment.status}</div>
+              <div className="pt-4">
+                <div className="text-white/60 text-sm">Monto</div>
+                <div className="text-xl font-semibold">
+                  {formatCOP(successPayment.amount_cop)}
                 </div>
               </div>
 
-              <div className="pt-6">
-                <button
-                  className="btn-primary w-full"
-                  onClick={() => nav(`/app/loans/${loanId}`)}
-                >
-                  Volver al préstamo
-                </button>
-              </div>
+              <button
+                className="btn-primary w-full mt-6"
+                onClick={() =>
+                  nav(
+                    `/app/loans/${loanId}/payments/${successPayment.id}`
+                  )
+                }
+              >
+                Ver detalle del pago
+              </button>
+
+              <button
+                className="btn-ghost w-full"
+                onClick={() =>
+                  nav(`/app/loans/${loanId}/payments`)
+                }
+              >
+                Volver al cronograma
+              </button>
+
             </div>
-
           </div>
         </div>
       </AppLayout>
     );
+  }
 
-  /* =============================
-     FORMULARIO
+  /* ==============================
+     Formulario
   ============================== */
 
   return (
@@ -156,53 +191,41 @@ export default function LoanPaymentCreate() {
         <div className="max-w-2xl mx-auto space-y-6">
 
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div>
             <button
               className="btn-ghost"
-              onClick={() => nav(`/app/loans/${loanId}`)}
+              onClick={() =>
+                nav(`/app/loans/${loanId}/payments`)
+              }
             >
-              ← Volver
+              ← Volver al cronograma
             </button>
           </div>
 
           <h1 className="text-2xl font-bold">
-            Registrar pago
+            Pagar cuota #{installment.number}
           </h1>
 
-          {/* Resumen del préstamo */}
-          {financial && (
-            <div className="card-glass p-6 space-y-2">
-              <div className="font-semibold">
-                Saldo pendiente
-              </div>
-
-              <div className="text-xl font-bold">
-                {formatCOP(financial.remaining_balance_cop)}
-              </div>
+          {/* Información de cuota */}
+          <div className="card-glass p-6 space-y-3">
+            <div className="flex justify-between">
+              <span className="text-white/60">Vencimiento</span>
+              <span>{formatDate(installment.due_date)}</span>
             </div>
-          )}
+
+            <div className="flex justify-between">
+              <span className="text-white/60">Monto</span>
+              <span className="font-semibold">
+                {formatCOP(installment.amount_cop)}
+              </span>
+            </div>
+          </div>
 
           {/* Formulario */}
           <form
             onSubmit={handleSubmit}
             className="card-glass p-6 space-y-5"
           >
-
-            {/* Monto */}
-            <div>
-              <label className="block text-white/60 text-sm mb-1">
-                Monto a pagar
-              </label>
-              <input
-                type="number"
-                className="input w-full"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Ej: 150000"
-              />
-            </div>
-
-            {/* Método */}
             <div>
               <label className="block text-white/60 text-sm mb-1">
                 Método de pago
@@ -221,7 +244,6 @@ export default function LoanPaymentCreate() {
               </select>
             </div>
 
-            {/* Referencia */}
             <div>
               <label className="block text-white/60 text-sm mb-1">
                 Referencia (opcional)
@@ -246,9 +268,10 @@ export default function LoanPaymentCreate() {
               disabled={submitting}
               className="btn-primary w-full"
             >
-              {submitting ? "Enviando..." : "Confirmar pago"}
+              {submitting
+                ? "Enviando..."
+                : "Confirmar pago"}
             </button>
-
           </form>
 
         </div>
