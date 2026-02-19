@@ -50,50 +50,51 @@ export default function LoanPaymentCreate() {
   ============================== */
 
   useEffect(() => {
-    async function load() {
-      try {
-        if (!installmentId) {
-          nav(`/app/loans/${loanId}/payments`, { replace: true });
-          return;
-        }
-
-        setLoading(true);
-        setError("");
-
-        // ✅ ÚNICO endpoint necesario
-        const res = await apiFetch(`/loans/${loanId}`, {
-          auth: true,
-        });
-
-        const loanData = res.loan;
-        const installments = loanData?.installments || [];
-
-        const inst = installments.find(
-          (i) => i.id === installmentId
-        );
-
-        if (!inst) {
-          setError("Cuota no encontrada.");
-          return;
-        }
-
-        if (inst.status !== "PENDING") {
-          nav(`/app/loans/${loanId}/payments`, { replace: true });
-          return;
-        }
-
-        setLoan(loanData);
-        setInstallment(inst);
-
-      } catch (e) {
-        setError(e.message || "No se pudo cargar la cuota.");
-      } finally {
-        setLoading(false);
+  async function load() {
+    try {
+      if (!installmentId) {
+        nav(`/app/loans/${loanId}/payments`, { replace: true });
+        return;
       }
-    }
 
-    load();
-  }, [loanId, installmentId, nav]);
+      setLoading(true);
+      setError("");
+
+      // ✅ ÚNICO endpoint necesario
+      const res = await apiFetch(`/loans/${loanId}`, {
+        auth: true,
+      });
+
+      // 👇 Soporta ambas estructuras: { loan: {...}, installments: [...] } o {...}
+      const loanData = res.loan || res;
+      const installments = loanData.installments || [];
+
+      const inst = installments.find(
+        (i) => i.id === installmentId
+      );
+
+      if (!inst) {
+        setError("Cuota no encontrada.");
+        return;
+      }
+
+      if (inst.status !== "PENDING") {
+        nav(`/app/loans/${loanId}/payments`, { replace: true });
+        return;
+      }
+
+      setLoan(loanData);
+      setInstallment(inst);
+
+    } catch (e) {
+      setError(e.message || "No se pudo cargar la cuota.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  load();
+}, [loanId, installmentId, nav]);
 
   /* ==============================
      Submit pago
