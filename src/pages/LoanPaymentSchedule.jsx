@@ -35,6 +35,35 @@ function statusBadge(status) {
   }
 }
 
+function getDisplayStatus(inst) {
+  // Si hay pago registrado en revisión
+  if (inst.payment_status === "UNDER_REVIEW") {
+    return "UNDER_REVIEW";
+  }
+
+  // Si backend ya actualiza el installment.status correctamente
+  if (inst.status === "UNDER_REVIEW") {
+    return "UNDER_REVIEW";
+  }
+
+  return inst.status;
+}
+
+function statusLabel(status) {
+  switch (status) {
+    case "PAID":
+      return "Pagado";
+    case "UNDER_REVIEW":
+      return "Pago en revisión";
+    case "OVERDUE":
+      return "Vencida";
+    case "PENDING":
+      return "Pendiente";
+    default:
+      return status;
+  }
+}
+
 export default function LoanPaymentSchedule() {
   const { loanId } = useParams();
   const nav = useNavigate();
@@ -188,46 +217,73 @@ export default function LoanPaymentSchedule() {
                     </td>
               
                     <td className="px-4 py-4">
-                      <span className={statusBadge(inst.status)}>
-                        {inst.status}
-                      </span>
+                      {(() => {
+                         const displayStatus = getDisplayStatus(inst);
+                         return (
+                           <span className={statusBadge(displayStatus)}>
+                             {statusLabel(displayStatus)}
+                           </span>
+                         );
+                       })()}
                     </td>
               
                     <td className="px-4 py-4 text-right space-x-2">
-                      {inst.status === "PAID" && inst.payment_id && (
-                        <button
-                          className="btn-ghost text-sm"
-                          onClick={() =>
-                            nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
-                          }
-                        >
-                          Ver pago
-                        </button>
-                      )}
-          
-                      {inst.status === "PENDING" &&
-                        permissions?.can_register_payment && (
-                          <button
-                            className="btn-primary text-sm"
-                            onClick={() =>
-                              nav(
-                                `/app/loans/${loanId}/payments/new?installment=${inst.id}`
-                              )
-                            }
-                          >
-                            Pagar
-                          </button>
-                        )}
-          
-                      {inst.status === "UNDER_REVIEW" && (
-                        <button
-                          disabled
-                          className="px-4 py-2 text-xs rounded-lg bg-yellow-500/20 text-yellow-300 cursor-not-allowed"
-                        >
-                          En validación
-                        </button>
-                      )}
+                      {(() => {
+                        const displayStatus = getDisplayStatus(inst);
+                    
+                        return (
+                          <>
+                            {displayStatus === "PAID" && inst.payment_id && (
+                              <button
+                                className="btn-ghost text-sm"
+                                onClick={() =>
+                                  nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
+                                }
+                              >
+                                Ver pago
+                              </button>
+                            )}
+
+                            {displayStatus === "PENDING" &&
+                              permissions?.can_register_payment && (
+                                <button
+                                  className="btn-primary text-sm"
+                                  onClick={() =>
+                                    nav(
+                                      `/app/loans/${loanId}/payments/new?installment=${inst.id}`
+                                    )
+                                  }
+                                >
+                                  Pagar
+                                </button>
+                              )}
+
+                            {displayStatus === "UNDER_REVIEW" && (
+                              <>
+                                {inst.payment_id && (
+                                  <button
+                                    className="btn-ghost text-sm"
+                                    onClick={() =>
+                                      nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
+                                    }
+                                  >
+                                    Ver comprobante
+                                  </button>
+                                )}
+
+                                <button
+                                  disabled
+                                  className="px-4 py-2 text-xs rounded-lg bg-yellow-500/20 text-yellow-300 cursor-not-allowed"
+                                >
+                                  Pago en revisión
+                                </button>
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
                     </td>
+
                   </tr>
                 ))}
               </tbody>
@@ -253,9 +309,14 @@ export default function LoanPaymentSchedule() {
                     Cuota #{inst.installment_number}
                   </div>
           
-                  <span className={statusBadge(inst.status)}>
-                    {inst.status}
-                  </span>
+                  {(() => {
+                  const displayStatus = getDisplayStatus(inst);
+                  return (
+                    <span className={statusBadge(displayStatus)}>
+                      {statusLabel(displayStatus)}
+                    </span>
+                  );
+                })()}
                 </div>
           
                 {/* Info */}
@@ -278,40 +339,62 @@ export default function LoanPaymentSchedule() {
           
                 {/* Action */}
                 <div className="pt-2">
-                  {inst.status === "PAID" && inst.payment_id && (
-                    <button
-                      className="btn-ghost w-full"
-                      onClick={() =>
-                        nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
-                      }
-                    >
-                      Ver pago
-                    </button>
-                  )}
-          
-                  {inst.status === "PENDING" &&
-                    permissions?.can_register_payment && (
-                      <button
-                        className="btn-primary w-full"
-                        onClick={() =>
-                          nav(
-                            `/app/loans/${loanId}/payments/new?installment=${inst.id}`
-                          )
-                        }
-                      >
-                        Pagar cuota
-                      </button>
-                    )}
-          
-                  {inst.status === "UNDER_REVIEW" && (
-                    <button
-                      disabled
-                      className="w-full px-4 py-3 text-sm rounded-lg bg-yellow-500/20 text-yellow-300 cursor-not-allowed"
-                    >
-                      En validación
-                    </button>
-                  )}
+                  {(() => {
+                    const displayStatus = getDisplayStatus(inst);
+                
+                    return (
+                      <>
+                        {displayStatus === "PAID" && inst.payment_id && (
+                          <button
+                            className="btn-ghost w-full"
+                            onClick={() =>
+                              nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
+                            }
+                          >
+                            Ver pago
+                          </button>
+                        )}
+                
+                        {displayStatus === "PENDING" &&
+                          permissions?.can_register_payment && (
+                            <button
+                              className="btn-primary w-full"
+                              onClick={() =>
+                                nav(
+                                  `/app/loans/${loanId}/payments/new?installment=${inst.id}`
+                                )
+                              }
+                            >
+                              Pagar cuota
+                            </button>
+                          )}
+                
+                        {displayStatus === "UNDER_REVIEW" && (
+                          <>
+                            {inst.payment_id && (
+                              <button
+                                className="btn-ghost w-full mb-2"
+                                onClick={() =>
+                                  nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
+                                }
+                              >
+                                Ver comprobante
+                              </button>
+                            )}
+                
+                            <button
+                              disabled
+                              className="w-full px-4 py-3 text-sm rounded-lg bg-yellow-500/20 text-yellow-300 cursor-not-allowed"
+                            >
+                              Pago en revisión
+                            </button>
+                          </>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
+
               </div>
             ))}
           </div>
