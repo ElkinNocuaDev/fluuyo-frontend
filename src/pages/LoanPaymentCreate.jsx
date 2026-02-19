@@ -42,6 +42,8 @@ export default function LoanPaymentCreate() {
   const [error, setError] = useState("");
   const [successPayment, setSuccessPayment] = useState(null);
 
+  const [file, setFile] = useState(null);
+
   if (booting) return null;
   if (!user) return <Navigate to="/login" replace />;
 
@@ -100,49 +102,53 @@ export default function LoanPaymentCreate() {
      Submit pago
   ============================== */
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
+async function handleSubmit(e) {
+  e.preventDefault();
+  setError("");
 
-    if (!installment) return;
+  if (!installment) return;
 
-    try {
-      setSubmitting(true);
-
-      const pendingAmount =
-        installment.amount_due_cop -
-        (installment.amount_paid_cop || 0);
-
-      if (pendingAmount <= 0) {
-        setError("Esta cuota ya está completamente pagada.");
-        return;
-      }
-
-      const payload = {
-        installment_id: installment.id,
-        amount_cop: pendingAmount,
-        method,
-        reference,
-      };
-
-      // ✅ Endpoint correcto
-      const res = await apiFetch(
-        `/loans/${loanId}/payments`,
-        {
-          method: "POST",
-          body: payload,
-          auth: true,
-        }
-      );
-
-      setSuccessPayment(res.payment);
-
-    } catch (e) {
-      setError(e.message || "No se pudo registrar el pago.");
-    } finally {
-      setSubmitting(false);
-    }
+  if (!file) {
+    setError("Debes subir el comprobante de pago.");
+    return;
   }
+
+  try {
+    setSubmitting(true);
+
+    const pendingAmount =
+      installment.amount_due_cop -
+      (installment.amount_paid_cop || 0);
+
+    if (pendingAmount <= 0) {
+      setError("Esta cuota ya está completamente pagada.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("amount_cop", pendingAmount);
+    formData.append("installment_id", installment.id);
+    formData.append("file", file);
+
+    const res = await apiFetch(
+      `/loans/${loanId}/payments`,
+      {
+        method: "POST",
+        body: formData,
+        auth: true,
+        isFormData: true, // 👈 importante si tu apiFetch setea headers automáticamente
+      }
+    );
+
+    setSuccessPayment(res.payment);
+
+  } catch (e) {
+    setError(e.message || "No se pudo registrar el pago.");
+  } finally {
+    setSubmitting(false);
+  }
+}
+
 
   /* ==============================
      Loading
@@ -292,6 +298,24 @@ export default function LoanPaymentCreate() {
                 onChange={(e) => setReference(e.target.value)}
                 placeholder="Número de comprobante"
               />
+            </div>
+
+            <div>
+              <label className="block text-white/60 text-sm mb-1">
+                Comprobante de pago (JPG, PNG o PDF)
+              </label>
+                    
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+                className="input w-full"
+                onChange={(e) => setFile(e.target.files[0] || null)}
+                required
+              />
+            
+              <p className="text-white/40 text-xs mt-1">
+                Tamaño máximo 5MB.
+              </p>
             </div>
 
             {error && (
