@@ -23,6 +23,8 @@ import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import LoanDetail from "./pages/LoanDetail";
 import VerifyAccountAdmin from "./pages/admin/VerifyAccountAdmin";
+import LoanPaymentCreate from "./pages/LoanPaymentCreate";
+import LoanPaymentDetail from "./pages/LoanPaymentDetail";
 
 
 export default function App() {
@@ -110,6 +112,24 @@ export default function App() {
           element={
             <ProtectedRoute>
               <LoanDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/app/loans/:loanId/payments/new"
+          element={
+            <ProtectedRoute>
+              <LoanPaymentCreate />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/app/loans/:loanId/payments/:paymentId"
+          element={
+            <ProtectedRoute>
+              <LoanPaymentDetail />
             </ProtectedRoute>
           }
         />
