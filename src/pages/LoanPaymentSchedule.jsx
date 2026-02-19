@@ -36,29 +36,37 @@ function statusBadge(status) {
 }
 
 function getDisplayStatus(inst) {
-  // Si hay pago registrado en revisión
-  if (inst.payment_status === "UNDER_REVIEW") {
+  // 1️⃣ Pago enviado y en revisión
+  if (inst.latest_payment_status === "SUBMITTED") {
     return "UNDER_REVIEW";
   }
 
-  // Si backend ya actualiza el installment.status correctamente
-  if (inst.status === "UNDER_REVIEW") {
-    return "UNDER_REVIEW";
+  // 2️⃣ Último pago rechazado
+  if (inst.latest_payment_status === "REJECTED") {
+    return "REJECTED";
   }
 
-  return inst.status;
+  // 3️⃣ Estado contable real
+  return inst.base_status || inst.status;
 }
 
 function statusLabel(status) {
   switch (status) {
     case "PAID":
       return "Pagado";
+
     case "UNDER_REVIEW":
       return "Pago en revisión";
+
+    case "REJECTED":
+      return "Pago rechazado";
+
     case "OVERDUE":
       return "Vencida";
+
     case "PENDING":
       return "Pendiente";
+
     default:
       return status;
   }
@@ -354,7 +362,7 @@ export default function LoanPaymentSchedule() {
                             Ver pago
                           </button>
                         )}
-                
+
                         {displayStatus === "PENDING" &&
                           permissions?.can_register_payment && (
                             <button
@@ -368,7 +376,7 @@ export default function LoanPaymentSchedule() {
                               Pagar cuota
                             </button>
                           )}
-                
+
                         {displayStatus === "UNDER_REVIEW" && (
                           <>
                             {inst.payment_id && (
@@ -381,7 +389,7 @@ export default function LoanPaymentSchedule() {
                                 Ver comprobante
                               </button>
                             )}
-                
+
                             <button
                               disabled
                               className="w-full px-4 py-3 text-sm rounded-lg bg-yellow-500/20 text-yellow-300 cursor-not-allowed"
