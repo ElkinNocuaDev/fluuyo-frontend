@@ -60,17 +60,16 @@ export default function LoanPaymentCreate() {
       setLoading(true);
       setError("");
 
-      // ✅ ÚNICO endpoint necesario
       const res = await apiFetch(`/loans/${loanId}`, {
         auth: true,
       });
 
-      // 👇 Soporta ambas estructuras: { loan: {...}, installments: [...] } o {...}
-      const loanData = res.loan || res;
-      const installments = loanData.installments || [];
+      // ✅ ESTRUCTURA REAL DEL BACKEND
+      const loanData = res.loan;
+      const installments = res.installments || [];
 
       const inst = installments.find(
-        (i) => i.id === installmentId
+        (i) => String(i.id) === String(installmentId)
       );
 
       if (!inst) {
@@ -95,6 +94,7 @@ export default function LoanPaymentCreate() {
 
   load();
 }, [loanId, installmentId, nav]);
+
 
   /* ==============================
      Submit pago
