@@ -151,8 +151,8 @@ export default function LoanPaymentSchedule() {
             </div>
           )}
 
-          {/* Tabla */}
-          <div className="card-glass overflow-hidden">
+          {/* Tabla Desktop */}
+          <div className="hidden md:block card-glass overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-white/5 text-white/60 uppercase text-xs tracking-wide">
                 <tr>
@@ -164,19 +164,8 @@ export default function LoanPaymentSchedule() {
                   <th className="text-right px-4 py-3">Acciones</th>
                 </tr>
               </thead>
-
+              
               <tbody>
-                {installments.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-4 py-6 text-center text-white/60"
-                    >
-                      No hay cuotas registradas.
-                    </td>
-                  </tr>
-                )}
-
                 {installments.map((inst) => (
                   <tr
                     key={inst.id}
@@ -185,42 +174,37 @@ export default function LoanPaymentSchedule() {
                     <td className="px-4 py-4 font-medium">
                       {inst.installment_number}
                     </td>
-
+              
                     <td className="px-4 py-4">
                       {formatDate(inst.due_date)}
                     </td>
-
+              
                     <td className="px-4 py-4">
                       {formatCOP(inst.amount_due_cop)}
                     </td>
-
+              
                     <td className="px-4 py-4">
                       {formatCOP(inst.amount_paid_cop)}
                     </td>
-
+              
                     <td className="px-4 py-4">
                       <span className={statusBadge(inst.status)}>
                         {inst.status}
                       </span>
                     </td>
-
+              
                     <td className="px-4 py-4 text-right space-x-2">
-
-                      {/* Ver pago */}
                       {inst.status === "PAID" && inst.payment_id && (
                         <button
                           className="btn-ghost text-sm"
                           onClick={() =>
-                            nav(
-                              `/app/loans/${loanId}/payments/${inst.payment_id}`
-                            )
+                            nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
                           }
                         >
                           Ver pago
                         </button>
                       )}
-
-                      {/* Pagar */}
+          
                       {inst.status === "PENDING" &&
                         permissions?.can_register_payment && (
                           <button
@@ -234,8 +218,7 @@ export default function LoanPaymentSchedule() {
                             Pagar
                           </button>
                         )}
-
-                      {/* En validación */}
+          
                       {inst.status === "UNDER_REVIEW" && (
                         <button
                           disabled
@@ -244,13 +227,95 @@ export default function LoanPaymentSchedule() {
                           En validación
                         </button>
                       )}
-
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Cards Mobile */}
+          <div className="md:hidden space-y-4">
+            {installments.length === 0 && (
+              <div className="card-glass p-6 text-center text-white/60">
+                No hay cuotas registradas.
+              </div>
+            )}
+          
+            {installments.map((inst) => (
+              <div
+                key={inst.id}
+                className="card-glass p-5 space-y-4"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold">
+                    Cuota #{inst.installment_number}
+                  </div>
+          
+                  <span className={statusBadge(inst.status)}>
+                    {inst.status}
+                  </span>
+                </div>
+          
+                {/* Info */}
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-white/60">Vencimiento</span>
+                    <span>{formatDate(inst.due_date)}</span>
+                  </div>
+          
+                  <div className="flex justify-between">
+                    <span className="text-white/60">Monto</span>
+                    <span>{formatCOP(inst.amount_due_cop)}</span>
+                  </div>
+          
+                  <div className="flex justify-between">
+                    <span className="text-white/60">Pagado</span>
+                    <span>{formatCOP(inst.amount_paid_cop)}</span>
+                  </div>
+                </div>
+          
+                {/* Action */}
+                <div className="pt-2">
+                  {inst.status === "PAID" && inst.payment_id && (
+                    <button
+                      className="btn-ghost w-full"
+                      onClick={() =>
+                        nav(`/app/loans/${loanId}/payments/${inst.payment_id}`)
+                      }
+                    >
+                      Ver pago
+                    </button>
+                  )}
+          
+                  {inst.status === "PENDING" &&
+                    permissions?.can_register_payment && (
+                      <button
+                        className="btn-primary w-full"
+                        onClick={() =>
+                          nav(
+                            `/app/loans/${loanId}/payments/new?installment=${inst.id}`
+                          )
+                        }
+                      >
+                        Pagar cuota
+                      </button>
+                    )}
+          
+                  {inst.status === "UNDER_REVIEW" && (
+                    <button
+                      disabled
+                      className="w-full px-4 py-3 text-sm rounded-lg bg-yellow-500/20 text-yellow-300 cursor-not-allowed"
+                    >
+                      En validación
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
 
         </div>
       </div>
