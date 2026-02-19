@@ -644,7 +644,7 @@ export default function AppHome() {
                     <button
                       type="button"
                       className="btn-primary w-full"
-                      onClick={() => nav(`/app/loan/${activeLoan.id}/payments/new`)}
+                      onClick={() => nav(`/app/loans/${activeLoan.id}/payments/new`)}
                       disabled={String(activeLoan?.status || "").toUpperCase() !== "DISBURSED"}
                       title={
                         String(activeLoan?.status || "").toUpperCase() !== "DISBURSED"
