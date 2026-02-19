@@ -342,20 +342,22 @@ function Card({ title, children }) {
 
 function StatusBadge({ status }) {
   const map = {
-    PENDING: "bg-yellow-500/20 text-yellow-300",
-    APPROVED: "bg-blue-500/20 text-blue-300",
-    DISBURSED: "bg-indigo-500/20 text-indigo-300",
-    CLOSED: "bg-green-500/20 text-green-300",
-    REJECTED: "bg-red-500/20 text-red-300",
+    PENDING: { label: "Pendiente", class: "bg-yellow-500/20 text-yellow-300" },
+    APPROVED: { label: "Aprobado", class: "bg-blue-500/20 text-blue-300" },
+    DISBURSED: { label: "Desembolsado", class: "bg-indigo-500/20 text-indigo-300" },
+    CLOSED: { label: "Cerrado", class: "bg-green-500/20 text-green-300" },
+    REJECTED: { label: "Rechazado", class: "bg-red-500/20 text-red-300" },
+    UNDER_REVIEW: { label: "Pago en revisión", class: "bg-orange-500/20 text-orange-300" },
+  };
+
+  const config = map[status] || {
+    label: status,
+    class: "bg-white/10 text-white",
   };
 
   return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-        map[status] || "bg-white/10 text-white"
-      }`}
-    >
-      {status}
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${config.class}`}>
+      {config.label}
     </span>
   );
 }
