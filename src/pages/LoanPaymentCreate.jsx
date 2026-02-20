@@ -131,6 +131,13 @@ async function handleSubmit(e) {
       return;
     }
 
+    console.log({
+      amountDue,
+      amountPaid,
+      pendingAmount,
+      type: typeof pendingAmount
+    });
+
     const formData = new FormData();
     formData.append("amount_cop", pendingAmount);
     formData.append("installment_id", installment.id);
