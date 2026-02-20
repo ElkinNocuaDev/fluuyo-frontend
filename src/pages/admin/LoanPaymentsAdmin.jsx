@@ -134,7 +134,7 @@ export default function LoanPaymentsAdmin() {
                   <td className="px-4 py-3">
                     {p.proof_url ? (
                       <a
-                        href={`${BACKEND_URL}/${p.proof_url}`}
+                        href={`${BACKEND_URL}${p.proof_url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
