@@ -117,11 +117,17 @@ async function handleSubmit(e) {
     setSubmitting(true);
 
     const pendingAmount =
-      installment.amount_due_cop -
-      (installment.amount_paid_cop || 0);
+      Number(installment.amount_cop || 0) -
+      Number(installment.amount_paid_cop || 0);
 
     if (pendingAmount <= 0) {
       setError("Esta cuota ya está completamente pagada.");
+      return;
+    }
+
+    // 🔒 Validación defensiva
+    if (isNaN(pendingAmount) || pendingAmount <= 0) {
+      setError("Monto inválido.");
       return;
     }
 
@@ -228,8 +234,8 @@ async function handleSubmit(e) {
   ============================== */
 
   const pendingAmount =
-    installment.amount_due_cop -
-    (installment.amount_paid_cop || 0);
+    Number(installment.amount_cop || 0) -
+    Number(installment.amount_paid_cop || 0);
 
   return (
     <AppLayout>
