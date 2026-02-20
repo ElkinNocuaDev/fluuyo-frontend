@@ -6,6 +6,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { apiFetch } from "../lib/api";
+import { apiUpload } from "../lib/apiMultipart";
 import { useAuth } from "../auth/AuthProvider";
 import AppLayout from "../components/AppLayout";
 
@@ -150,14 +151,10 @@ async function handleSubmit(e) {
     formData.append("reference", reference || "");
     formData.append("file", file);
 
-    const res = await apiFetch(
+    const res = await apiUpload(
       `/loans/${loanId}/payments`,
-      {
-        method: "POST",
-        body: formData,
-        auth: true,
-        isFormData: true,
-      }
+      formData,
+      { auth: true }
     );
 
     setSuccessPayment(res.payment);
@@ -168,6 +165,7 @@ async function handleSubmit(e) {
     setSubmitting(false);
   }
 }
+
 
 
 
