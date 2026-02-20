@@ -117,7 +117,7 @@ async function handleSubmit(e) {
     setSubmitting(true);
 
     const pendingAmount =
-      Number(installment.amount_cop || 0) -
+      Number(installment.amount_due_cop || 0) -
       Number(installment.amount_paid_cop || 0);
 
     if (pendingAmount <= 0) {
@@ -234,7 +234,7 @@ async function handleSubmit(e) {
   ============================== */
 
   const pendingAmount =
-    Number(installment.amount_cop || 0) -
+    Number(installment.amount_due_cop || 0) -
     Number(installment.amount_paid_cop || 0);
 
   return (
