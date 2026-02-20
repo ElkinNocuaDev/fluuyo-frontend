@@ -23,6 +23,18 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString("es-CO");
 }
 
+function parseMoney(value) {
+  if (value == null) return 0;
+
+  const normalized = String(value)
+    .replace(/\./g, "")   // elimina separador miles
+    .replace(",", ".")    // convierte coma decimal
+    .replace(/[^\d.]/g, "");
+
+  const num = Number(normalized);
+  return Number.isFinite(num) ? num : 0;
+}
+
 export default function LoanPaymentCreate() {
   const { loanId } = useParams();
   const [searchParams] = useSearchParams();
@@ -116,38 +128,23 @@ async function handleSubmit(e) {
   try {
     setSubmitting(true);
 
-    // 1️⃣ Sanitizar valores crudos del backend
-    const rawDue = installment?.amount_due_cop ?? "0";
-    const rawPaid = installment?.amount_paid_cop ?? "0";
+    const due = parseMoney(installment.amount_due_cop);
+    const paid = parseMoney(installment.amount_paid_cop);
+    const pendingAmount = Math.max(due - paid, 0);
 
-    const cleanDue = String(rawDue).replace(/[^\d.]/g, "");
-    const cleanPaid = String(rawPaid).replace(/[^\d.]/g, "");
-
-    const due = Number(cleanDue);
-    const paid = Number(cleanPaid);
-
-    if (Number.isNaN(due) || Number.isNaN(paid)) {
-      setError("Error procesando el monto de la cuota.");
-      return;
-    }
-
-    const pendingAmount = due - paid;
-
-    if (!Number.isFinite(pendingAmount) || pendingAmount <= 0) {
+    if (pendingAmount <= 0) {
       setError("Esta cuota ya está completamente pagada.");
       return;
     }
 
-    // 2️⃣ Validar archivo (igual que KYC)
     const max = 5 * 1024 * 1024;
     if (file.size > max) {
       setError("Archivo demasiado grande (máx. 5MB).");
       return;
     }
 
-    // 3️⃣ FormData exactamente como KYC
     const formData = new FormData();
-    formData.append("amount_cop", pendingAmount.toString());
+    formData.append("amount_cop", String(pendingAmount));
     formData.append("installment_id", String(installment.id));
     formData.append("payment_method", method);
     formData.append("reference", reference || "");
@@ -251,9 +248,9 @@ async function handleSubmit(e) {
      Render formulario
   ============================== */
 
-  const due = Number(String(installment.amount_due_cop ?? "0").replace(/[^\d.]/g, ""));
-const paid = Number(String(installment.amount_paid_cop ?? "0").replace(/[^\d.]/g, ""));
-const pendingAmount = due - paid;
+  const due = parseMoney(installment?.amount_due_cop);
+const paid = parseMoney(installment?.amount_paid_cop);
+const pendingAmount = Math.max(due - paid, 0);
 
   return (
     <AppLayout>
