@@ -116,36 +116,41 @@ async function handleSubmit(e) {
   try {
     setSubmitting(true);
 
-    const pendingAmount =
-      Number(installment.amount_due_cop ?? 0) -
-      Number(installment.amount_paid_cop ?? 0);
+    // 1️⃣ Sanitizar valores crudos del backend
+    const rawDue = installment?.amount_due_cop ?? "0";
+    const rawPaid = installment?.amount_paid_cop ?? "0";
 
-    if (pendingAmount <= 0) {
+    const cleanDue = String(rawDue).replace(/[^\d.]/g, "");
+    const cleanPaid = String(rawPaid).replace(/[^\d.]/g, "");
+
+    const due = Number(cleanDue);
+    const paid = Number(cleanPaid);
+
+    if (Number.isNaN(due) || Number.isNaN(paid)) {
+      setError("Error procesando el monto de la cuota.");
+      return;
+    }
+
+    const pendingAmount = due - paid;
+
+    if (!Number.isFinite(pendingAmount) || pendingAmount <= 0) {
       setError("Esta cuota ya está completamente pagada.");
       return;
     }
 
-    // 🔒 Validación defensiva
-    if (isNaN(pendingAmount) || pendingAmount <= 0) {
-      setError("Monto inválido.");
+    // 2️⃣ Validar archivo (igual que KYC)
+    const max = 5 * 1024 * 1024;
+    if (file.size > max) {
+      setError("Archivo demasiado grande (máx. 5MB).");
       return;
     }
 
-    console.log("DEBUG BEFORE FORM DATA", {
-      installment,
-      rawAmount: installment?.amount_cop,
-      rawAmountDue: installment?.amount_due_cop,
-      rawPaid: installment?.amount_paid_cop,
-      parsedAmount: Number(installment?.amount_cop),
-      parsedAmountDue: Number(installment?.amount_due_cop),
-      parsedPaid: Number(installment?.amount_paid_cop),
-      pendingAmount,
-      pendingType: typeof pendingAmount
-    });
-
+    // 3️⃣ FormData exactamente como KYC
     const formData = new FormData();
-    formData.append("amount_cop", pendingAmount);
-    formData.append("installment_id", installment.id);
+    formData.append("amount_cop", pendingAmount.toString());
+    formData.append("installment_id", String(installment.id));
+    formData.append("payment_method", method);
+    formData.append("reference", reference || "");
     formData.append("file", file);
 
     const res = await apiFetch(
@@ -154,7 +159,7 @@ async function handleSubmit(e) {
         method: "POST",
         body: formData,
         auth: true,
-        isFormData: true, // 👈 importante si tu apiFetch setea headers automáticamente
+        isFormData: true,
       }
     );
 
@@ -166,6 +171,7 @@ async function handleSubmit(e) {
     setSubmitting(false);
   }
 }
+
 
 
   /* ==============================
@@ -245,9 +251,9 @@ async function handleSubmit(e) {
      Render formulario
   ============================== */
 
-  const pendingAmount =
-    Number(installment.amount_due_cop ?? 0) -
-    Number(installment.amount_paid_cop ?? 0);
+  const due = Number(String(installment.amount_due_cop ?? "0").replace(/[^\d.]/g, ""));
+const paid = Number(String(installment.amount_paid_cop ?? "0").replace(/[^\d.]/g, ""));
+const pendingAmount = due - paid;
 
   return (
     <AppLayout>
