@@ -131,11 +131,16 @@ async function handleSubmit(e) {
       return;
     }
 
-    console.log({
-      amountDue,
-      amountPaid,
+    console.log("DEBUG BEFORE FORM DATA", {
+      installment,
+      rawAmount: installment?.amount_cop,
+      rawAmountDue: installment?.amount_due_cop,
+      rawPaid: installment?.amount_paid_cop,
+      parsedAmount: Number(installment?.amount_cop),
+      parsedAmountDue: Number(installment?.amount_due_cop),
+      parsedPaid: Number(installment?.amount_paid_cop),
       pendingAmount,
-      type: typeof pendingAmount
+      pendingType: typeof pendingAmount
     });
 
     const formData = new FormData();
