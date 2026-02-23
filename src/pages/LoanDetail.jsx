@@ -94,6 +94,13 @@ export default function LoanDetail() {
 
           <div className="text-sm px-3 py-1 rounded-full bg-white/10">
             {loan.status}
+            {loan.status === "DISBURSED"
+            ? "DESEMBOLSADO"
+            : loan.status === "APPROVED"
+            ? "APROBADO"
+            : loan.status === "REJECTED"
+            ? "RECHAZADO"
+            : loan.status}
           </div>
         </div>
 
@@ -206,12 +213,6 @@ export default function LoanDetail() {
                   badgeClasses =
                     "bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full text-xs inline-block";
                 }
-
-                if (paymentForInstallment.status === "PENDING") {
-                  displayStatus = "PENDIENTE";
-                  badgeClasses =
-                    "bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-xs inline-block";
-                }
             
                 if (paymentForInstallment.status === "REJECTED") {
                   displayStatus = "RECHAZADA";
@@ -224,7 +225,20 @@ export default function LoanDetail() {
                   badgeClasses =
                     "bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs inline-block";
                 }
-              }
+              } else {
+                  // 👇 AQUÍ estaba faltando esto
+                  if (i.status === "PENDING") {
+                    displayStatus = "PENDIENTE";
+                    badgeClasses =
+                      "bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-xs inline-block";
+                  }
+              
+                  if (i.status === "PAID") {
+                    displayStatus = "PAGADA";
+                    badgeClasses =
+                      "bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs inline-block";
+                  }
+                }
           
               return (
                 <div
