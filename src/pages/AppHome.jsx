@@ -555,7 +555,7 @@ export default function AppHome() {
                           <div className="text-sm text-white/80">
                             #{x.installment_number} • {fmtDate(x.due_date)}
                             <div className="text-xs text-white/60">
-                              Estado: {String(x.status || "—")}
+                              Estado: {x.status === "pending" ? "PENDIENTE" : String(x.status || "—")}
                             </div>
                           </div>
                           <div className="text-sm font-semibold text-white">
