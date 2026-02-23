@@ -267,7 +267,16 @@ export default function LoanDetail() {
                 className="p-4 rounded-lg bg-white/5 space-y-1"
               >
                 <div>Monto: {formatCOP(p.amount_cop)}</div>
-                <div>Estado: {p.status}</div>
+                <div>
+                  Estado:{" "}
+                  {p.status === "SUBMITTED"
+                    ? "ENVIADO"
+                    : p.status === "APPROVED"
+                    ? "APROBADO"
+                    : p.status === "REJECTED"
+                    ? "RECHAZADO"
+                    : p.status}
+                </div>
                 <div>Fecha: {formatDate(p.created_at)}</div>
               </div>
             ))}
