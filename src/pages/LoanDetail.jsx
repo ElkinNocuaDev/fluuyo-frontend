@@ -157,7 +157,13 @@ export default function LoanDetail() {
 
               <div className="flex justify-between">
                 <span className="text-white/60">Tipo</span>
-                <span>{disbursementAccount.account_type}</span>
+                <span>
+                  {disbursementAccount.account_type === "SAVINGS"
+                    ? "Ahorros"
+                    : disbursementAccount.account_type === "CHECKING"
+                    ? "Corriente"
+                    : disbursementAccount.account_type}
+                </span>
               </div>
 
               <div className="flex justify-between">
@@ -182,22 +188,66 @@ export default function LoanDetail() {
             </div>
           )}
 
-          {installments.map((i) => (
-            <div
-              key={i.id}
-              className="p-4 rounded-lg bg-white/5 space-y-1"
-            >
-              <div className="font-semibold">
-                Cuota #{i.installment_number}
-              </div>
-              <div>Vence: {formatDate(i.due_date)}</div>
-              <div>Monto: {formatCOP(i.amount_due_cop)}</div>
-              <div>Pagado: {formatCOP(i.amount_paid_cop)}</div>
-              <div className="text-sm text-white/60">
-                Estado: {i.status}
-              </div>
-            </div>
-          ))}
+          {installments.map((i) => {
+              const paymentForInstallment = payments.find(
+                (p) => p.installment_id === i.id
+              );
+          
+              // Valor enviado por el usuario (si existe)
+              const submittedAmount = paymentForInstallment?.amount_cop;
+          
+              // Determinar estado visual
+              let displayStatus = i.status;
+              let badgeClasses = "text-white/60";
+          
+              if (paymentForInstallment) {
+                if (paymentForInstallment.status === "SUBMITTED") {
+                  displayStatus = "ENVIADA";
+                  badgeClasses =
+                    "bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full text-xs inline-block";
+                }
+            
+                if (paymentForInstallment.status === "REJECTED") {
+                  displayStatus = "RECHAZADA";
+                  badgeClasses =
+                    "bg-red-500/20 text-red-300 px-2 py-1 rounded-full text-xs inline-block";
+                }
+            
+                if (paymentForInstallment.status === "APPROVED") {
+                  displayStatus = "PAGADA";
+                  badgeClasses =
+                    "bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs inline-block";
+                }
+              }
+          
+              return (
+                <div
+                  key={i.id}
+                  className="p-4 rounded-lg bg-white/5 space-y-1"
+                >
+                  <div className="font-semibold">
+                    Cuota #{i.installment_number}
+                  </div>
+            
+                  <div>Vence: {formatDate(i.due_date)}</div>
+            
+                  <div>Monto: {formatCOP(i.amount_due_cop)}</div>
+            
+                  <div>
+                    Pagado:{" "}
+                    {submittedAmount
+                      ? formatCOP(submittedAmount)
+                      : formatCOP(i.amount_paid_cop)}
+                  </div>
+                    
+                  <div className="text-sm">
+                    <span className={badgeClasses}>
+                      {displayStatus}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
         </div>
 
         {/* Pagos */}
