@@ -93,7 +93,6 @@ export default function LoanDetail() {
           </button>
 
           <div className="text-sm px-3 py-1 rounded-full bg-white/10">
-            {loan.status}
             {loan.status === "DISBURSED"
             ? "DESEMBOLSADO"
             : loan.status === "APPROVED"
