@@ -35,19 +35,17 @@ function statusBadge(status) {
   }
 }
 
-function getDisplayStatus(inst) {
-  // 1️⃣ Pago enviado y en revisión
-  if (inst.latest_payment_status === "SUBMITTED") {
-    return "UNDER_REVIEW";
-  }
+function getDisplayStatus(inst, payments) {
+  const payment = payments.find(
+    (p) => p.installment_id === inst.id
+  );
 
-  // 2️⃣ Último pago rechazado
-  if (inst.latest_payment_status === "REJECTED") {
-    return "REJECTED";
-  }
+  if (payment?.status === "SUBMITTED") return "UNDER_REVIEW";
+  if (payment?.status === "REJECTED") return "REJECTED";
+  if (payment?.status === "APPROVED") return "PAID";
 
-  // 3️⃣ Estado contable real
-  return inst.base_status || inst.status;
+  // fallback contable explícito
+  return inst.base_status ?? inst.status;
 }
 
 function statusLabel(status) {
@@ -85,6 +83,8 @@ export default function LoanPaymentSchedule() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [payments, setPayments] = useState([]);
+
   if (booting) return null;
   if (!user) return <Navigate to="/login" replace />;
 
@@ -99,6 +99,7 @@ export default function LoanPaymentSchedule() {
         setInstallments(res.installments || []);
         setFinancial(res.financial_summary || null);
         setPermissions(res.permissions || null);
+        setPayments(res.payments || []);
       } catch (e) {
         setError(e.message || "No se pudo cargar el cronograma.");
       } finally {
@@ -148,7 +149,13 @@ export default function LoanPaymentSchedule() {
             </button>
 
             <div className="text-sm px-3 py-1 rounded-full bg-white/10">
-              {loan.status}
+              {loan.status === "DISBURSED"
+              ? "DESEMBOLSADO"
+              : loan.status === "APPROVED"
+              ? "APROBADO"
+              : loan.status === "REJECTED"
+              ? "RECHAZADO"
+              : loan.status}
             </div>
           </div>
 
@@ -226,7 +233,7 @@ export default function LoanPaymentSchedule() {
               
                     <td className="px-4 py-4">
                       {(() => {
-                         const displayStatus = getDisplayStatus(inst);
+                         const displayStatus = getDisplayStatus(inst, payments);
                          return (
                            <span className={statusBadge(displayStatus)}>
                              {statusLabel(displayStatus)}
@@ -237,7 +244,7 @@ export default function LoanPaymentSchedule() {
               
                     <td className="px-4 py-4 text-right space-x-2">
                       {(() => {
-                        const displayStatus = getDisplayStatus(inst);
+                        const displayStatus = getDisplayStatus(inst, payments);
                     
                         return (
                           <>
@@ -318,7 +325,7 @@ export default function LoanPaymentSchedule() {
                   </div>
           
                   {(() => {
-                  const displayStatus = getDisplayStatus(inst);
+                  const displayStatus = getDisplayStatus(inst, payments);
                   return (
                     <span className={statusBadge(displayStatus)}>
                       {statusLabel(displayStatus)}
@@ -348,7 +355,7 @@ export default function LoanPaymentSchedule() {
                 {/* Action */}
                 <div className="pt-2">
                   {(() => {
-                    const displayStatus = getDisplayStatus(inst);
+                    const displayStatus = getDisplayStatus(inst, payments);
                 
                     return (
                       <>
