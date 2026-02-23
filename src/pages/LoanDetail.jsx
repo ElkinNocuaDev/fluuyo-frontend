@@ -206,6 +206,12 @@ export default function LoanDetail() {
                   badgeClasses =
                     "bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full text-xs inline-block";
                 }
+
+                if (paymentForInstallment.status === "PENDING") {
+                  displayStatus = "PENDIENTE";
+                  badgeClasses =
+                    "bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-xs inline-block";
+                }
             
                 if (paymentForInstallment.status === "REJECTED") {
                   displayStatus = "RECHAZADA";
