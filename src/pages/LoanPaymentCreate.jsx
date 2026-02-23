@@ -25,14 +25,7 @@ function formatDate(date) {
 }
 
 function parseMoney(value) {
-  if (value == null) return 0;
-
-  const normalized = String(value)
-    .replace(/\./g, "")   // elimina separador miles
-    .replace(",", ".")    // convierte coma decimal
-    .replace(/[^\d.]/g, "");
-
-  const num = Number(normalized);
+  const num = Number(value);
   return Number.isFinite(num) ? num : 0;
 }
 
