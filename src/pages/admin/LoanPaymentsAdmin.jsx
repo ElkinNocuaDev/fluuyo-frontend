@@ -16,21 +16,7 @@ export default function LoanPaymentsAdmin() {
   const [rejecting, setRejecting] = useState(null); // paymentId
   const [rejectionReason, setRejectionReason] = useState("");
 
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        setLoading(true);
-        const data = await apiFetch(`/admin/loans/${id}/payments`);
-        setPayments(data.payments || []);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudieron cargar los pagos.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const reviewPayment = async (paymentId, status, reason = null) => {
+  const reviewPayment = async (paymentId, status, reason = null) => {
       try {
         setReviewing(paymentId);
 
@@ -63,6 +49,21 @@ export default function LoanPaymentsAdmin() {
         setRejectionReason("");
       }
     };
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        const data = await apiFetch(`/admin/loans/${id}/payments`);
+        setPayments(data.payments || []);
+      } catch (err) {
+        console.error(err);
+        setError("No se pudieron cargar los pagos.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
 
     fetchPayments();
   }, [id]);
