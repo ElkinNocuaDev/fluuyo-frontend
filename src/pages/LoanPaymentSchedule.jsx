@@ -259,7 +259,21 @@ export default function LoanPaymentSchedule() {
                               </button>
                             )}
 
-                            {displayStatus === "PENDING" || displayStatus === "REJECTED" &&
+                            {displayStatus === "PENDING" &&
+                              permissions?.can_register_payment && (
+                                <button
+                                  className="btn-primary text-sm"
+                                  onClick={() =>
+                                    nav(
+                                      `/app/loans/${loanId}/payments/new?installment=${inst.id}`
+                                    )
+                                  }
+                                >
+                                  Pagar
+                                </button>
+                              )}
+
+                            {displayStatus === "REJECTED" &&
                               permissions?.can_register_payment && (
                                 <button
                                   className="btn-primary text-sm"
