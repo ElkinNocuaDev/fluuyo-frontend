@@ -22,11 +22,10 @@ export default function LoanPaymentsAdmin() {
 
         await apiFetch(`/admin/loan-payments/${paymentId}/review`, {
           method: "PATCH",
-          body: JSON.stringify(
+          body:
             status === "REJECTED"
               ? { status, rejection_reason: reason }
-              : { status }
-          ),
+              : { status },
         });
 
         // Optimistic update
