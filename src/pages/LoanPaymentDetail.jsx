@@ -90,7 +90,13 @@ export default function LoanPaymentDetail() {
             </button>
 
             <div className="text-sm px-3 py-1 rounded-full bg-white/10">
-              {payment.status}
+              {payment.status === "DISBURSED"
+              ? "DESEMBOLSADO"
+              : payment.status === "APPROVED"
+              ? "APROBADO"
+              : payment.status === "REJECTED"
+              ? "RECHAZADO"
+              : payment.status}
             </div>
           </div>
 
@@ -124,7 +130,15 @@ export default function LoanPaymentDetail() {
 
             <div className="flex justify-between">
               <span className="text-white/60">Estado actual</span>
-              <span>{payment.status}</span>
+              <span>
+                {payment.status === "DISBURSED"
+              ? "DESEMBOLSADO"
+              : payment.status === "APPROVED"
+              ? "APROBADO"
+              : payment.status === "REJECTED"
+              ? "RECHAZADO"
+              : payment.status}
+              </span>
             </div>
 
             <div className="flex justify-between">
@@ -163,7 +177,15 @@ export default function LoanPaymentDetail() {
 
               <div className="flex justify-between">
                 <span className="text-white/60">Estado</span>
-                <span>{loan.status}</span>
+                <span>
+                    {loan.status === "DISBURSED"
+                    ? "DESEMBOLSADO"
+                    : loan.status === "APPROVED"
+                    ? "APROBADO"
+                    : loan.status === "REJECTED"
+                    ? "RECHAZADO"
+                    : loan.status}
+                </span>
               </div>
             </div>
           )}
