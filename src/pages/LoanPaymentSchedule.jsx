@@ -259,7 +259,7 @@ export default function LoanPaymentSchedule() {
                               </button>
                             )}
 
-                            {displayStatus === "PENDING" &&
+                            {displayStatus === "PENDING" || displayStatus === "REJECTED" &&
                               permissions?.can_register_payment && (
                                 <button
                                   className="btn-primary text-sm"
